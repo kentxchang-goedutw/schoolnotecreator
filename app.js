@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
       timetable: true,
       monthly: true,
       weekly: true,
+      weeklyTimetable: true,
       grid: true,
       dot: false
     },
@@ -108,10 +109,19 @@ document.addEventListener('DOMContentLoaded', () => {
     selectTimetablePeriods: document.getElementById('select-timetable-periods'),
     chkMonthly: document.getElementById('chk-include-monthly'),
     chkWeekly: document.getElementById('chk-include-weekly'),
+    chkWeeklyTimetable: document.getElementById('chk-include-weekly-timetable'),
     chkGrid: document.getElementById('chk-include-grid'),
     chkDot: document.getElementById('chk-include-dot'),
     inputGridPages: document.getElementById('input-grid-pages'),
     inputDotPages: document.getElementById('input-dot-pages'),
+
+    // 課表輸入設定
+    selectTabTimetablePeriods: document.getElementById('select-tab-timetable-periods'),
+    inputTimetableGoalField: document.getElementById('input-timetable-goal-field'),
+    timetableEditorContainer: document.getElementById('timetable-editor-container'),
+    btnSampleTt1: document.getElementById('btn-sample-tt-1'),
+    btnSampleTt2: document.getElementById('btn-sample-tt-2'),
+    btnClearTt: document.getElementById('btn-clear-tt'),
 
     // 封面設計
     coverTemplateTitle: document.getElementById('cover-template-title'),
@@ -310,6 +320,112 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  // ================= 節次配置生成器 (統一 7/8/9 節與午休標準) =================
+  function getTimetablePeriodConfigs(periodCount) {
+    const pCount = parseInt(periodCount, 10) || 7;
+    const configs = [
+      { pIdx: 0, label: '第 1 節', time: '08:10-09:00', shortTime: '08:10', isBreak: false },
+      { pIdx: 1, label: '第 2 節', time: '09:10-10:00', shortTime: '09:10', isBreak: false },
+      { pIdx: 2, label: '第 3 節', time: '10:10-11:00', shortTime: '10:10', isBreak: false },
+      { pIdx: 3, label: '第 4 節', time: '11:10-12:00', shortTime: '11:10', isBreak: false },
+      { pIdx: 4, label: '午休 NOON', time: '12:00-13:10', shortTime: '12:00', isBreak: true },
+      { pIdx: 5, label: '第 5 節', time: '13:20-14:10', shortTime: '13:20', isBreak: false },
+      { pIdx: 6, label: '第 6 節', time: '14:20-15:10', shortTime: '14:20', isBreak: false },
+      { pIdx: 7, label: '第 7 節', time: '15:20-16:10', shortTime: '15:20', isBreak: false }
+    ];
+
+    if (pCount >= 8) {
+      configs.push({ pIdx: 8, label: '第 8 節', time: '16:20-17:10', shortTime: '16:20', isBreak: false });
+    }
+    if (pCount >= 9) {
+      configs.push({ pIdx: 9, label: '第 9 節', time: '17:20-18:10', shortTime: '17:20', isBreak: false });
+    }
+
+    return configs;
+  }
+
+  // ================= 課表範例資料 =================
+  const sampleTimetables = {
+    junior: {
+      0: ['國文', '數學', '英語', '自然', '社會'],
+      1: ['英語', '國文', '數學', '社會', '自然'],
+      2: ['數學', '體育', '國文', '資訊', '英語'],
+      3: ['自然', '社會', '音樂', '國文', '數學'],
+      4: ['午休', '午休', '午休', '午休', '午休'],
+      5: ['社會', '英語', '美術', '健康', '班會'],
+      6: ['體育', '自然', '自習', '童軍', '社團'],
+      7: ['輔導', '自習', '閱讀', '專題', '自習'],
+      8: ['自習', '自習', '自習', '自習', '自習'],
+      9: ['課後', '課後', '課後', '課後', '課後']
+    },
+    college: {
+      0: ['微積分(一)', '計算機概論', '普通物理', '程式設計', '自由選修'],
+      1: ['微積分(一)', '計算機概論', '普通物理', '程式設計', '自由選修'],
+      2: ['線性代數', '英語聽講', '通識哲學', '體育(羽球)', '專案研究'],
+      3: ['線性代數', '英語聽講', '通識哲學', '體育(羽球)', '專案研究'],
+      4: ['午餐', '午餐', '午餐', '午餐', '午餐'],
+      5: ['演算法', '資料結構', '離散數學', '生涯發展', '專案實作'],
+      6: ['演算法', '資料結構', '離散數學', '專題討論', '專案實作'],
+      7: ['研習課', '實驗課', '自由選修', '專題討論', '社團活動'],
+      8: ['研習課', '實驗課', '自由選修', '自由選修', '社團活動'],
+      9: ['自由研究', '自由研究', '自由研究', '自由研究', '自由研究']
+    }
+  };
+
+  // ================= 渲染側邊欄課表輸入編輯器 =================
+  function renderTimetableEditor() {
+    if (!dom.timetableEditorContainer) return;
+    const periodList = getTimetablePeriodConfigs(state.timetablePeriods);
+    const days = ['週一', '週二', '週三', '週四', '週五'];
+
+    let tableHtml = `
+      <table class="tt-editor-table">
+        <thead>
+          <tr>
+            <th style="width: 54px;">節次</th>
+    `;
+    days.forEach(d => {
+      tableHtml += `<th>${d}</th>`;
+    });
+    tableHtml += `</tr></thead><tbody>`;
+
+    periodList.forEach(p => {
+      const pLabel = p.label;
+      const rowClass = p.isBreak ? 'tt-editor-break-row' : '';
+      tableHtml += `<tr class="${rowClass}"><td class="tt-editor-period-label">${pLabel}</td>`;
+      for (let c = 0; c < 5; c++) {
+        const cellKey = `${p.pIdx}_${c}`;
+        const val = state.customTimetableCells[cellKey] || '';
+        tableHtml += `
+          <td>
+            <input 
+              type="text" 
+              class="tt-editor-input" 
+              data-cell-key="${cellKey}" 
+              value="${escapeHtml(val)}" 
+              placeholder="${p.isBreak ? '午休' : '科目'}"
+            >
+          </td>
+        `;
+      }
+      tableHtml += `</tr>`;
+    });
+    tableHtml += `</tbody></table>`;
+    dom.timetableEditorContainer.innerHTML = tableHtml;
+
+    // 綁定輸入即時同步
+    dom.timetableEditorContainer.querySelectorAll('.tt-editor-input').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const key = e.target.dataset.cellKey;
+        state.customTimetableCells[key] = e.target.value;
+        // 同步畫布上所有對應格子 (包含學期課表頁與所有每週課表記事頁)
+        document.querySelectorAll(`.mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
+          c.innerText = e.target.value;
+        });
+      });
+    });
+  }
+
   // ================= 更新樣板選擇器顯示狀態 =================
   function updateTemplatePickerDisplay() {
     const isClassic = state.styleMode === 'classic';
@@ -360,8 +476,13 @@ document.addEventListener('DOMContentLoaded', () => {
     state.timetablePeriods = parseInt(dom.selectTimetablePeriods.value, 10) || 7;
     state.includes.monthly = dom.chkMonthly.checked;
     state.includes.weekly = dom.chkWeekly.checked;
+    state.includes.weeklyTimetable = dom.chkWeeklyTimetable ? dom.chkWeeklyTimetable.checked : true;
     state.includes.grid = dom.chkGrid.checked;
     state.includes.dot = dom.chkDot.checked;
+
+    if (dom.inputTimetableGoalField) {
+      state.customTimetableGoal = dom.inputTimetableGoalField.value || '';
+    }
 
     state.cover.title = dom.coverTitle.value || '學習筆記本';
     state.cover.subtitle = dom.coverSubtitle.value || '';
@@ -440,7 +561,33 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 4. 週計畫頁
+    // 3.5 每週課表記事頁 (上/左課表 + 下/右 7 日記事)
+    if (state.includes.weeklyTimetable) {
+      allWeeks.forEach((w) => {
+        let calculatedTitle = '';
+        let isConfiguredWeek = false;
+
+        if (w.rawIndex >= state.startWeekIndex && w.rawIndex <= state.endWeekIndex) {
+          const teachingWeekNum = w.rawIndex - state.startWeekIndex + 1;
+          calculatedTitle = `第 ${teachingWeekNum} 週`;
+          isConfiguredWeek = true;
+        }
+
+        const effectiveTitle = (state.customWeekTitles[w.weekKey] !== undefined)
+          ? state.customWeekTitles[w.weekKey]
+          : calculatedTitle;
+
+        const wttEl = createWeeklyTimetablePage(w, pageNumber, effectiveTitle, isConfiguredWeek);
+        dom.pagesCanvas.appendChild(wttEl);
+
+        const mLabel = `${w.startDate.getMonth() + 1}/${w.startDate.getDate()}`;
+        const navTitle = effectiveTitle ? `📋 ${effectiveTitle} 課表記事 (${mLabel})` : `📋 課表記事 (${mLabel})`;
+        pageIndexList.push({ title: navTitle, pageNum: pageNumber });
+        pageNumber++;
+      });
+    }
+
+    // 4. 一般週計畫頁
     if (state.includes.weekly) {
       allWeeks.forEach((w) => {
         // 計算教學週次或留空
@@ -610,48 +757,31 @@ document.addEventListener('DOMContentLoaded', () => {
       headerCols += `<div class="tt-header">${d}</div>`;
     });
 
-    // 預設各節次資訊
-    const defaultPeriods = [
-      '第 1 節<br><small>08:10-09:00</small>',
-      '第 2 節<br><small>09:10-10:00</small>',
-      '第 3 節<br><small>10:10-11:00</small>',
-      '第 4 節<br><small>11:10-12:00</small>',
-      '午休 NOON<br><small>12:00-13:10</small>',
-      '第 5 節<br><small>13:20-14:10</small>',
-      '第 6 節<br><small>14:20-15:10</small>',
-      '第 7 節<br><small>15:20-16:10</small>'
-    ];
-
-    if (state.timetablePeriods >= 8) {
-      defaultPeriods.push('第 8 節<br><small>16:20-17:10</small>');
-    }
-    if (state.timetablePeriods >= 9) {
-      defaultPeriods.push('第 9 節<br><small>17:20-18:10</small>');
-    }
+    const periodList = getTimetablePeriodConfigs(state.timetablePeriods);
 
     let cellsHtml = '';
-    defaultPeriods.forEach((defP, pIdx) => {
-      // 若有自訂文字則使用自訂文字，否則用預設 HTML
-      const effectiveLabel = state.customTimetableLabels[pIdx] !== undefined
-        ? state.customTimetableLabels[pIdx]
-        : defP;
+    periodList.forEach(p => {
+      const defLabel = `${p.label}<br><small>${p.time}</small>`;
+      const effectiveLabel = state.customTimetableLabels[p.pIdx] !== undefined
+        ? state.customTimetableLabels[p.pIdx]
+        : defLabel;
 
       cellsHtml += `
         <div 
-          class="tt-time-col" 
+          class="tt-time-col ${p.isBreak ? 'tt-break-col' : ''}" 
           contenteditable="true" 
           spellcheck="false"
-          data-p-idx="${pIdx}" 
+          data-p-idx="${p.pIdx}" 
           title="點擊可直接修改節次與時間文字"
         >${effectiveLabel}</div>
       `;
 
       for (let c = 0; c < 5; c++) {
-        const cellKey = `${pIdx}_${c}`;
+        const cellKey = `${p.pIdx}_${c}`;
         const cellContent = state.customTimetableCells[cellKey] || '';
         cellsHtml += `
           <div 
-            class="tt-cell" 
+            class="tt-cell ${p.isBreak ? 'tt-break-cell' : ''}" 
             contenteditable="true" 
             spellcheck="false"
             data-cell-key="${cellKey}" 
@@ -663,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const defaultGoal = isClassic ? '🎯 Academic Goals: Focus, Diligence & Excellence' : '✨ 本學期目標：踏實學習，快樂成長！';
     const effectiveGoal = state.customTimetableGoal || defaultGoal;
-    const gridRowsStyle = `grid-template-rows: 36px repeat(${defaultPeriods.length}, 1fr);`;
+    const gridRowsStyle = `grid-template-rows: 36px repeat(${periodList.length}, 1fr);`;
 
     const ribbonIcon = isClassic ? '🏛️' : '🎒';
     const ribbonTitle = isClassic ? '學期課程時間表 ACADEMIC TIMETABLE' : '學期課程時間表 Class Timetable';
@@ -698,11 +828,25 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // 綁定課表格子文字修改事件
+    // 綁定課表格子文字修改事件 (同步至側邊欄與其他週課表)
     page.querySelectorAll('.tt-cell').forEach(cell => {
       cell.addEventListener('input', (e) => {
         const key = e.target.dataset.cellKey;
-        state.customTimetableCells[key] = e.target.innerText;
+        const text = e.target.innerText;
+        state.customTimetableCells[key] = text;
+        
+        // 即時同步至側邊欄輸入框
+        const sidebarInput = document.querySelector(`.tt-editor-input[data-cell-key="${key}"]`);
+        if (sidebarInput && sidebarInput.value !== text) {
+          sidebarInput.value = text;
+        }
+
+        // 即時同步至所有每週課表記事頁的同個格子
+        document.querySelectorAll(`.mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
+          if (c !== e.target && c.innerText !== text) {
+            c.innerText = text;
+          }
+        });
       });
     });
 
@@ -711,6 +855,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (goalEl) {
       goalEl.addEventListener('input', (e) => {
         state.customTimetableGoal = e.target.innerText;
+        if (dom.inputTimetableGoalField && dom.inputTimetableGoalField.value !== e.target.innerText) {
+          dom.inputTimetableGoalField.value = e.target.innerText;
+        }
       });
     }
 
@@ -844,7 +991,193 @@ document.addEventListener('DOMContentLoaded', () => {
     return page;
   }
 
-  // ================= 4. 生成週計畫頁 (支援可編輯週次) =================
+  // ================= 4. 生成每週課表記事頁 (上/左課表 + 下/右 7 日記事) =================
+  function createWeeklyTimetablePage(w, pageNum, weekTitle, isConfiguredWeek) {
+    const isClassic = state.styleMode === 'classic';
+    const page = document.createElement('div');
+    page.className = `notebook-page page-weekly-timetable ${state.options.showCorner ? 'with-corner-border' : ''}`;
+
+    const zhDays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+    const enDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+    // 1. 生成上方 / 左方 縮小版學期課表
+    const ttDays = ['星期一 MON', '星期二 TUE', '星期三 WED', '星期四 THU', '星期五 FRI'];
+    let headerCols = '<div class="mini-tt-header">節次</div>';
+    ttDays.forEach(d => {
+      headerCols += `<div class="mini-tt-header">${d}</div>`;
+    });
+
+    const periodList = getTimetablePeriodConfigs(state.timetablePeriods);
+
+    let cellsHtml = '';
+    periodList.forEach(p => {
+      const defLabel = `${p.label}<br><small>${p.shortTime}</small>`;
+      const effectiveLabel = state.customTimetableLabels[p.pIdx] !== undefined
+        ? state.customTimetableLabels[p.pIdx]
+        : defLabel;
+
+      cellsHtml += `<div class="mini-tt-time-col ${p.isBreak ? 'tt-break-col' : ''}">${effectiveLabel}</div>`;
+
+      for (let c = 0; c < 5; c++) {
+        const cellKey = `${p.pIdx}_${c}`;
+        const cellContent = state.customTimetableCells[cellKey] || '';
+        cellsHtml += `
+          <div 
+            class="mini-tt-cell ${p.isBreak ? 'tt-break-cell' : ''}" 
+            contenteditable="true" 
+            spellcheck="false"
+            data-cell-key="${cellKey}" 
+            title="點擊可直接修改此節科目"
+          >${escapeHtml(cellContent)}</div>
+        `;
+      }
+    });
+
+    const gridRowsStyle = `grid-template-rows: 24px repeat(${periodList.length}, 1fr);`;
+
+    // 2. 生成 7 日每日記事欄
+    let daysHtml = '';
+    w.days.forEach(day => {
+      const dayNum = day.getDate();
+      const dIndex = day.getDay();
+      const isWeekend = dIndex === 0 || dIndex === 6;
+
+      daysHtml += `
+        <div class="wtt-day-card ${isWeekend ? 'weekend-card' : ''}">
+          <div class="wtt-day-header">
+            <span class="wtt-day-num">${dayNum}</span>
+            <span class="wtt-day-name">${zhDays[dIndex]} <small style="color:var(--page-text-light);font-size:0.7rem;">${enDays[dIndex]}</small></span>
+          </div>
+          <div class="wtt-day-lines">
+            <div class="wtt-line"><span class="wtt-check"></span><div class="wtt-line-bar"></div></div>
+            <div class="wtt-line"><span class="wtt-check"></span><div class="wtt-line-bar"></div></div>
+            <div class="wtt-line"><span class="wtt-check"></span><div class="wtt-line-bar"></div></div>
+          </div>
+        </div>
+      `;
+    });
+
+    // 第 8 格：本週重點與備忘
+    const focusTitle = isClassic ? '⚡ 本週重點 Priorities' : '🌟 本週焦點 Weekly Focus';
+    const extraCardHtml = `
+      <div class="wtt-focus-card">
+        <div class="wtt-focus-title">
+          <span>${isClassic ? '⚡' : '🌟'}</span> ${focusTitle}
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:space-evenly; margin-top:2px;">
+          <div class="wtt-line"><span class="wtt-check"></span><div class="wtt-line-bar"></div></div>
+          <div class="wtt-line"><span class="wtt-check"></span><div class="wtt-line-bar"></div></div>
+          <div class="wtt-line"><span class="wtt-check"></span><div class="wtt-line-bar"></div></div>
+        </div>
+      </div>
+    `;
+
+    const startStr = `${w.startDate.getFullYear()}.${w.startDate.getMonth() + 1}.${w.startDate.getDate()}`;
+    const endStr = `${w.endDate.getMonth() + 1}.${w.endDate.getDate()}`;
+    const badgeClass = weekTitle ? 'weekly-badge' : 'weekly-badge empty-week';
+
+    const effectiveQuote = (state.customWeeklyQuotes[w.weekKey] !== undefined)
+      ? state.customWeeklyQuotes[w.weekKey]
+      : state.weeklyGlobalQuote;
+
+    const ttSectionTitle = isClassic ? '🏛️ 學期課程時間表 ACADEMIC TIMETABLE' : '🏫 學期課程時間表 Class Timetable';
+    const notesSectionTitle = isClassic ? '📝 每日學習與任務清單 DAILY PLANNER' : '📝 每日記事與學習進度 Daily Notes';
+
+    page.innerHTML = `
+      ${createCornerDecor()}
+      <div class="weekly-top-bar">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span 
+            class="${badgeClass}" 
+            contenteditable="true" 
+            spellcheck="false"
+            data-week-key="${w.weekKey}"
+            title="點擊可直接手動修改此處文字"
+          >${escapeHtml(weekTitle)}</span>
+          <span class="weekly-date-range">${startStr} - ${endStr}</span>
+        </div>
+        <div 
+          class="weekly-focus-box" 
+          contenteditable="true" 
+          spellcheck="false"
+          data-week-key="${w.weekKey}"
+          title="點擊可直接修改此週右上角小語"
+        >
+          ${escapeHtml(effectiveQuote)}
+        </div>
+      </div>
+
+      <div class="wtt-container">
+        <!-- 課表區域 (直式在上方，橫式在左方) -->
+        <div class="wtt-timetable-section">
+          <div class="wtt-section-subtitle">${ttSectionTitle}</div>
+          <div class="mini-timetable-grid" style="${gridRowsStyle}">
+            ${headerCols}
+            ${cellsHtml}
+          </div>
+        </div>
+
+        <!-- 7 日記事區域 (直式在下方，橫式在右方) -->
+        <div class="wtt-notes-section">
+          <div class="wtt-section-subtitle">${notesSectionTitle}</div>
+          <div class="wtt-days-grid">
+            ${daysHtml}
+            ${extraCardHtml}
+          </div>
+        </div>
+      </div>
+      ${createPageFooter(pageNum, weekTitle ? `${weekTitle} 課表記事 Planner` : 'Weekly Timetable Planner')}
+    `;
+
+    // 綁定週次手動修改事件
+    const editableBadge = page.querySelector('.weekly-badge');
+    if (editableBadge) {
+      editableBadge.addEventListener('input', (e) => {
+        const text = e.target.innerText.trim();
+        state.customWeekTitles[w.weekKey] = text;
+        if (text) {
+          editableBadge.classList.remove('empty-week');
+        } else {
+          editableBadge.classList.add('empty-week');
+        }
+      });
+    }
+
+    // 綁定右上角小語修改
+    const editableQuote = page.querySelector('.weekly-focus-box');
+    if (editableQuote) {
+      editableQuote.addEventListener('input', (e) => {
+        const text = e.target.innerText.trim();
+        state.customWeeklyQuotes[w.weekKey] = text;
+      });
+    }
+
+    // 綁定課表格子修改並同步 (同步至側邊欄與其他週課表及學期課表頁)
+    page.querySelectorAll('.mini-tt-cell').forEach(cell => {
+      cell.addEventListener('input', (e) => {
+        const key = e.target.dataset.cellKey;
+        const text = e.target.innerText;
+        state.customTimetableCells[key] = text;
+        
+        // 即時同步至側邊欄輸入框
+        const sidebarInput = document.querySelector(`.tt-editor-input[data-cell-key="${key}"]`);
+        if (sidebarInput && sidebarInput.value !== text) {
+          sidebarInput.value = text;
+        }
+
+        // 即時同步至所有其他頁面上的同個格子 (包含學期課表頁與所有每週課表記事頁)
+        document.querySelectorAll(`.mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
+          if (c !== e.target && c.innerText !== text) {
+            c.innerText = text;
+          }
+        });
+      });
+    });
+
+    return page;
+  }
+
+  // ================= 5. 生成一般週計畫頁 (支援可編輯週次) =================
   function createWeeklyPage(w, pageNum, weekTitle, isConfiguredWeek) {
     const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
@@ -989,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return page;
   }
 
-  // ================= 5. 生成附錄方格頁 =================
+  // ================= 6. 生成附錄方格頁 =================
   function createGridPage(pageNum, subIndex = 1, totalSubPages = 1) {
     const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
@@ -1010,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return page;
   }
 
-  // ================= 6. 生成附錄點陣頁 =================
+  // ================= 7. 生成附錄點陣頁 =================
   function createDotPage(pageNum, subIndex = 1, totalSubPages = 1) {
     const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
@@ -1144,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const autoUpdateInputs = [
     dom.inputStartDate, dom.inputEndDate, dom.selectWeekStart,
     dom.chkCover, dom.chkTimetable, dom.selectTimetablePeriods,
-    dom.chkMonthly, dom.chkWeekly, 
+    dom.chkMonthly, dom.chkWeekly, dom.chkWeeklyTimetable,
     dom.chkGrid, dom.chkDot, dom.inputGridPages, dom.inputDotPages,
     dom.inputWeeklyGlobalQuote,
     dom.coverTitle, dom.coverSubtitle, dom.coverTerm, dom.coverName, dom.coverFontStyle,
@@ -1152,9 +1485,86 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   autoUpdateInputs.forEach(input => {
-    input.addEventListener('input', renderAll);
-    input.addEventListener('change', renderAll);
+    if (input) {
+      input.addEventListener('input', renderAll);
+      input.addEventListener('change', renderAll);
+    }
   });
+
+  // 課表目標小語欄位變更即時同步
+  if (dom.inputTimetableGoalField) {
+    dom.inputTimetableGoalField.addEventListener('input', (e) => {
+      state.customTimetableGoal = e.target.value;
+      document.querySelectorAll('#tt-goal-pill').forEach(el => {
+        el.innerText = e.target.value;
+      });
+    });
+  }
+
+  // 快捷帶入中學課表
+  if (dom.btnSampleTt1) {
+    dom.btnSampleTt1.addEventListener('click', () => {
+      const data = sampleTimetables.junior;
+      for (let p = 0; p < (state.timetablePeriods || 7); p++) {
+        const row = data[p] || ['自習', '自習', '自習', '自習', '自習'];
+        for (let c = 0; c < 5; c++) {
+          state.customTimetableCells[`${p}_${c}`] = row[c] || '';
+        }
+      }
+      renderTimetableEditor();
+      renderAll();
+    });
+  }
+
+  // 快捷帶入大學課表
+  if (dom.btnSampleTt2) {
+    dom.btnSampleTt2.addEventListener('click', () => {
+      const data = sampleTimetables.college;
+      for (let p = 0; p < (state.timetablePeriods || 7); p++) {
+        const row = data[p] || ['自由研習', '自由研習', '自由研習', '自由研習', '自由研習'];
+        for (let c = 0; c < 5; c++) {
+          state.customTimetableCells[`${p}_${c}`] = row[c] || '';
+        }
+      }
+      renderTimetableEditor();
+      renderAll();
+    });
+  }
+
+  // 清空課表
+  if (dom.btnClearTt) {
+    dom.btnClearTt.addEventListener('click', () => {
+      state.customTimetableCells = {};
+      renderTimetableEditor();
+      renderAll();
+    });
+  }
+
+  // 節數變更同步函式
+  function syncTimetablePeriods(newVal) {
+    state.timetablePeriods = parseInt(newVal, 10) || 7;
+    if (dom.selectTimetablePeriods && dom.selectTimetablePeriods.value !== String(state.timetablePeriods)) {
+      dom.selectTimetablePeriods.value = String(state.timetablePeriods);
+    }
+    if (dom.selectTabTimetablePeriods && dom.selectTabTimetablePeriods.value !== String(state.timetablePeriods)) {
+      dom.selectTabTimetablePeriods.value = String(state.timetablePeriods);
+    }
+    renderTimetableEditor();
+    renderAll();
+  }
+
+  // 當節數變更時重新渲染側邊欄課表編輯器
+  if (dom.selectTimetablePeriods) {
+    dom.selectTimetablePeriods.addEventListener('change', (e) => {
+      syncTimetablePeriods(e.target.value);
+    });
+  }
+
+  if (dom.selectTabTimetablePeriods) {
+    dom.selectTabTimetablePeriods.addEventListener('change', (e) => {
+      syncTimetablePeriods(e.target.value);
+    });
+  }
 
   // 套用每週小語至全部按鈕
   dom.btnApplyQuoteAll.addEventListener('click', () => {
@@ -1250,7 +1660,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 10. 匯出設定 (Export JSON)
   dom.btnExportConfig.addEventListener('click', () => {
     const exportData = {
-      version: '1.1',
+      version: '1.2',
       exportedAt: new Date().toISOString(),
       state: {
         styleMode: state.styleMode,
@@ -1328,11 +1738,18 @@ document.addEventListener('DOMContentLoaded', () => {
           dom.chkTimetable.checked = !!s.includes.timetable;
           dom.chkMonthly.checked = !!s.includes.monthly;
           dom.chkWeekly.checked = !!s.includes.weekly;
+          if (dom.chkWeeklyTimetable) {
+            dom.chkWeeklyTimetable.checked = s.includes.weeklyTimetable !== false;
+          }
           dom.chkGrid.checked = !!s.includes.grid;
           dom.chkDot.checked = !!s.includes.dot;
         }
 
-        if (s.timetablePeriods !== undefined) dom.selectTimetablePeriods.value = s.timetablePeriods;
+        if (s.timetablePeriods !== undefined) {
+          dom.selectTimetablePeriods.value = s.timetablePeriods;
+          if (dom.selectTabTimetablePeriods) dom.selectTabTimetablePeriods.value = s.timetablePeriods;
+          state.timetablePeriods = parseInt(s.timetablePeriods, 10);
+        }
         if (s.gridPages !== undefined) dom.inputGridPages.value = s.gridPages;
         if (s.dotPages !== undefined) dom.inputDotPages.value = s.dotPages;
 
@@ -1387,7 +1804,11 @@ document.addEventListener('DOMContentLoaded', () => {
         state.customTimetableLabels = s.customTimetableLabels || {};
         state.customTimetableCells = s.customTimetableCells || {};
         state.customTimetableGoal = s.customTimetableGoal || '';
+        if (dom.inputTimetableGoalField) {
+          dom.inputTimetableGoalField.value = state.customTimetableGoal;
+        }
 
+        renderTimetableEditor();
         renderAll();
 
         // 還原週次起訖選擇器值 (在 renderAll 生成 options 後)
@@ -1413,5 +1834,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 啟動初始化
   initDefaultDates();
+  renderTimetableEditor();
   renderAll();
 });

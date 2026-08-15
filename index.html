@@ -49,6 +49,7 @@
       <!-- 標籤切換 -->
       <nav class="panel-tabs">
         <button class="tab-btn active" data-tab="tab-calendar">📅 日期結構</button>
+        <button class="tab-btn" data-tab="tab-timetable">🏫 課表設定</button>
         <button class="tab-btn" data-tab="tab-cover">🎨 封面設計</button>
         <button class="tab-btn" data-tab="tab-style">✨ 風格色彩</button>
       </nav>
@@ -184,6 +185,11 @@
               <span class="checkmark"></span>
               <span class="label-text">📝 週計畫頁 (一週一頁，日程與打卡)</span>
             </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="chk-include-weekly-timetable" checked>
+              <span class="checkmark"></span>
+              <span class="label-text">📋 每週課表記事頁 (上/左課表 + 下/右 7 日記事)</span>
+            </label>
             
             <!-- 附錄方格頁 (含自訂頁數) -->
             <div class="appendix-item-row">
@@ -210,6 +216,48 @@
                 <span class="page-count-unit">頁</span>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- 標籤頁: 課表設定與手動輸入編輯器 -->
+        <section id="tab-timetable" class="tab-content">
+          <div class="section-title">
+            <span class="section-badge">🏫</span>
+            <h3>課表基本設定與目標</h3>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="select-tab-timetable-periods">每日課堂節數</label>
+              <select id="select-tab-timetable-periods" class="form-control">
+                <option value="7" selected>7 節課 (上午4節+午休+下午3節)</option>
+                <option value="8">8 節課 (上午4節+午休+下午4節)</option>
+                <option value="9">9 節課 (上午4節+午休+下午5節)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="input-timetable-goal-field">本學期課表目標標語</label>
+              <input type="text" id="input-timetable-goal-field" class="form-control" value="✨ 本學期目標：踏實學習，快樂成長！" placeholder="例如：✨ 本學期目標：踏實學習，快樂成長！">
+            </div>
+          </div>
+          <p class="form-help-text">
+            💡 在此輸入或在預覽畫面的任一週課表點擊輸入，內容皆會自動雙向同步！
+          </p>
+
+          <div class="quick-semester-btns">
+            <span class="quick-label">快速帶入課表：</span>
+            <button type="button" class="btn-chip" id="btn-sample-tt-1">帶入中學課表範例</button>
+            <button type="button" class="btn-chip" id="btn-sample-tt-2">帶入大學課表範例</button>
+            <button type="button" class="btn-chip" id="btn-clear-tt">清空課表</button>
+          </div>
+
+          <div class="section-title mt-4">
+            <span class="section-badge">✏️</span>
+            <h3>手動輸入每節課表科目</h3>
+          </div>
+
+          <div class="timetable-editor-wrap" id="timetable-editor-container">
+            <!-- JS 動態生成週一至週五各節次輸入表格 -->
           </div>
         </section>
 

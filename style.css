@@ -798,6 +798,100 @@ body {
   z-index: 10;
 }
 
+/* 課表輸入編輯器 (Sidebar) */
+.timetable-editor-wrap {
+  overflow-x: auto;
+  margin-top: 10px;
+  border: 1px solid #ebdcd0;
+  border-radius: var(--ui-radius-sm);
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+
+.tt-editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.tt-editor-table th, .tt-editor-table td {
+  border: 1px solid #eee0d5;
+  padding: 4px 2px;
+  text-align: center;
+}
+
+.tt-editor-table th {
+  background: #fdf6ee;
+  color: #6d5444;
+  font-weight: 800;
+  font-size: 0.76rem;
+}
+
+.tt-editor-period-label {
+  font-size: 0.72rem;
+  font-weight: bold;
+  color: #8c7365;
+  background: #faf2ea;
+  white-space: nowrap;
+  padding: 4px;
+}
+
+.tt-editor-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 2px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.84rem;
+  font-family: inherit;
+  font-weight: 800;
+  color: #181513; /* 有輸入時為清晰黑色 */
+  background: transparent;
+  outline: none;
+  transition: all 0.15s;
+}
+
+/* 未輸入時：科目文字改用淡色提示字 */
+.tt-editor-input::placeholder {
+  color: #c7b5a8 !important;
+  font-weight: normal !important;
+  opacity: 0.75 !important;
+}
+
+.tt-editor-input:hover {
+  background: #fff8f0;
+  border-color: #ebdcd0;
+}
+
+.tt-editor-input:focus {
+  background: #ffffff;
+  border-color: #f08a9d;
+  box-shadow: 0 0 0 2px rgba(240, 138, 157, 0.25);
+  color: #000000;
+}
+
+.tt-editor-break-row td {
+  background: #faf6f0;
+}
+
+.tt-editor-break-row .tt-editor-period-label {
+  background: #f2e7dc;
+  color: #8c6850;
+  font-weight: 800;
+}
+
+.tt-break-col {
+  background: rgba(0, 0, 0, 0.04) !important;
+  font-size: 0.68rem !important;
+}
+
+.tt-break-cell {
+  background: rgba(0, 0, 0, 0.015) !important;
+  font-size: 0.74rem !important;
+  color: var(--page-text-light) !important;
+}
+
 .hidden {
   display: none !important;
 }
@@ -2250,6 +2344,281 @@ body {
 }
 
 /* ========================================================
+   每週課表記事頁 (Weekly Timetable & Planner Page)
+   直式：上方半面課表、下方 7 日每日記事
+   橫式：左方半面課表、右方 7 日每日記事
+   ======================================================== */
+.page-weekly-timetable {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.wtt-container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 直式佈局：上下分割 */
+.orientation-portrait .wtt-container {
+  flex-direction: column;
+  gap: 10px;
+}
+
+.orientation-portrait .wtt-timetable-section {
+  flex: 4.8;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.orientation-portrait .wtt-notes-section {
+  flex: 5.2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 橫式佈局：左右分割 */
+.orientation-landscape .wtt-container {
+  flex-direction: row;
+  gap: 14px;
+}
+
+.orientation-landscape .wtt-timetable-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.orientation-landscape .wtt-notes-section {
+  flex: 1.1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wtt-section-subtitle {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--page-primary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 縮小版學期課表元件 */
+.mini-timetable-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 68px repeat(5, 1fr);
+  gap: 3px;
+  background: var(--page-accent);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1.5px solid var(--page-border);
+}
+
+.mini-tt-header {
+  background: var(--page-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.78rem;
+  border-radius: 4px;
+  padding: 2px;
+  text-align: center;
+}
+
+.mini-tt-time-col {
+  background: var(--page-primary-soft);
+  color: var(--page-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.72rem;
+  border-radius: 4px;
+  border: 1px dashed var(--page-line);
+  padding: 1px 2px;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.mini-tt-cell {
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid var(--page-line);
+  padding: 2px 3px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--page-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  outline: none;
+  cursor: text;
+  word-break: break-all;
+}
+
+.mini-tt-cell:hover, .mini-tt-cell:focus {
+  border-color: var(--page-primary);
+  background: #fffdfa;
+}
+
+/* 7 日每日記事欄網格 (直式) */
+.orientation-portrait .wtt-days-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+}
+
+/* 7 日每日記事欄網格 (橫式) */
+.orientation-landscape .wtt-days-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.wtt-day-card {
+  background: #ffffff;
+  border: 1.2px solid var(--page-border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.wtt-day-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px dashed var(--page-line);
+  padding-bottom: 2px;
+  margin-bottom: 2px;
+}
+
+.wtt-day-num {
+  background: var(--page-primary);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 900;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wtt-day-name {
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--page-text);
+}
+
+.wtt-day-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 2px;
+}
+
+.wtt-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 14px;
+}
+
+.wtt-check {
+  width: 9px;
+  height: 9px;
+  border: 1.2px solid var(--page-primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.wtt-line-bar {
+  flex: 1;
+  border-bottom: 1px dashed var(--page-subline);
+  height: 1px;
+}
+
+.wtt-focus-card {
+  background: var(--page-primary-soft);
+  border: 1.5px dashed var(--page-primary);
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.wtt-focus-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--page-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 正式經典風格下的覆蓋 (Classic Style) */
+.style-classic .mini-timetable-grid {
+  border-radius: 0;
+  border: 1.2px solid var(--page-primary);
+  background: var(--page-primary-soft);
+}
+
+.style-classic .mini-tt-header {
+  border-radius: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.style-classic .mini-tt-time-col {
+  border-radius: 0;
+  border: 1px solid var(--page-line);
+}
+
+.style-classic .mini-tt-cell {
+  border-radius: 0;
+  border: 1px solid var(--page-line);
+}
+
+.style-classic .wtt-day-card {
+  border-radius: 0;
+  border: 1px solid var(--page-primary);
+}
+
+.style-classic .wtt-day-num {
+  border-radius: 0;
+}
+
+.style-classic .wtt-check {
+  border-radius: 0;
+}
+
+.style-classic .wtt-focus-card {
+  border-radius: 0;
+  border: 1px solid var(--page-primary);
+}
+
+/* ========================================================
    列印與匯出 PDF 精準專用樣式 (@media print)
    ======================================================== */
 @media print {
@@ -2368,6 +2737,10 @@ body {
   }
 
   .weekly-body-grid {
+    height: calc(100% - 60px) !important;
+  }
+
+  .wtt-container {
     height: calc(100% - 60px) !important;
   }
 
