@@ -1,5 +1,5 @@
 /**
- * 可愛學期手寫筆記本生成工具 - 核心邏輯 (app.js)
+ * 可愛與正式經典學期手寫筆記本生成工具 - 核心邏輯 (app.js)
  * Made by 阿剛老師 (https://kentxchang.blogspot.tw)
  * 授權: CC BY-NC-SA 4.0
  */
@@ -7,6 +7,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ================= 預設與狀態管理 =================
   const state = {
+    styleMode: 'cute', // 'cute': 溫馨可愛風, 'classic': 正式經典風
     startDate: '',
     endDate: '',
     orientation: 'portrait',
@@ -37,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       blur: 0,
       title: '2026-2027 學習筆記本',
       subtitle: '每一天都是充滿希望的小冒險 🌸',
-      term: '上學期',
+      term: '第一學期',
       name: '阿剛同學',
       font: 'font-zen'
     },
@@ -50,14 +51,22 @@ document.addEventListener('DOMContentLoaded', () => {
     zoom: 0.8
   };
 
-  // 封面樣板主題預設圖示與配色裝飾
+  // 封面樣板主題預設圖示與配色裝飾 (包含可愛風與經典風)
   const coverTemplates = {
+    // 可愛風樣板
     cream: { icon: '🧸', badge: 'SEMESTER NOTEBOOK', decor: '🧁 🍯 ☕ 🥖' },
     sakura: { icon: '🌸', badge: 'SPRING PLANNER', decor: '🍓 🎀 🍡 🌷' },
     mint: { icon: '🍃', badge: 'DAILY JOURNAL', decor: '🌱 🌿 🥑 🍵' },
     lavender: { icon: '🔮', badge: 'DREAM JOURNAL', decor: '✨ 🌙 🌌 💜' },
     warm: { icon: '🍊', badge: 'HAPPY DAYS', decor: '🌻 🥞 🎈 🍯' },
-    minimal: { icon: '✒️', badge: 'MINIMAL STUDY', decor: '📖 ✏️ 📐 ☕' }
+    minimal: { icon: '✒️', badge: 'MINIMAL STUDY', decor: '📖 ✏️ 📐 ☕' },
+    // 正式經典風樣板
+    academic: { icon: '🏛️', badge: 'ACADEMIC JOURNAL', decor: '📐 ✒️ 📜 📖' },
+    executive: { icon: '📑', badge: 'EXECUTIVE PLANNER', decor: '💼 🖋️ 📊 🗓️' },
+    vintage: { icon: '📜', badge: 'CLASSIC EDITION', decor: '🕯️ 🗝️ 🖋️ 📜' },
+    navy: { icon: '⚓', badge: 'OFFICIAL PLANNER', decor: '🧭 🗺️ ⚓ 📐' },
+    burgundy: { icon: '🍷', badge: 'ROYAL HERITAGE', decor: '⚜️ 🍷 🖋️ 📜' },
+    monochrome: { icon: '📐', badge: 'MINIMAL MASTER', decor: '📐 📏 ✏️ 📄' }
   };
 
   const monthNamesZh = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
@@ -73,6 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
     tabBtns: document.querySelectorAll('.tab-btn'),
     tabContents: document.querySelectorAll('.tab-content'),
     
+    // 風格模式切換
+    radioStyleModes: document.querySelectorAll('input[name="style-mode"]'),
+
     // 日期與學期輸入
     inputStartDate: document.getElementById('input-start-date'),
     inputEndDate: document.getElementById('input-end-date'),
@@ -102,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     inputDotPages: document.getElementById('input-dot-pages'),
 
     // 封面設計
+    coverTemplateTitle: document.getElementById('cover-template-title'),
     templateCards: document.querySelectorAll('.template-card'),
     coverBgFile: document.getElementById('cover-bg-file'),
     uploadPlaceholder: document.getElementById('upload-placeholder'),
@@ -297,9 +310,43 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  // ================= 更新樣板選擇器顯示狀態 =================
+  function updateTemplatePickerDisplay() {
+    const isClassic = state.styleMode === 'classic';
+    if (dom.coverTemplateTitle) {
+      dom.coverTemplateTitle.textContent = isClassic ? '預設正式經典版型' : '預設溫馨可愛版型';
+    }
+
+    dom.templateCards.forEach(card => {
+      const isCardClassic = card.classList.contains('classic-tpl');
+      if (isClassic) {
+        if (isCardClassic) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      } else {
+        if (isCardClassic) {
+          card.classList.add('hidden');
+        } else {
+          card.classList.remove('hidden');
+        }
+      }
+
+      if (card.dataset.template === state.cover.template) {
+        card.classList.add('active');
+      } else {
+        card.classList.remove('active');
+      }
+    });
+  }
+
   // ================= 頁面渲染器 =================
   function renderAll() {
     // 讀取 UI 設定並更新 state
+    const selectedStyleRadio = document.querySelector('input[name="style-mode"]:checked');
+    state.styleMode = selectedStyleRadio ? selectedStyleRadio.value : 'cute';
+
     state.startDate = dom.inputStartDate.value;
     state.endDate = dom.inputEndDate.value;
     state.weekStartDay = parseInt(dom.selectWeekStart.value, 10);
@@ -324,17 +371,20 @@ document.addEventListener('DOMContentLoaded', () => {
     state.cover.opacity = parseInt(dom.coverBgOpacity.value, 10);
     state.cover.blur = parseInt(dom.coverBgBlur.value, 10);
 
-    state.weeklyGlobalQuote = dom.inputWeeklyGlobalQuote.value || '🌸 Remember to smile every day!';
+    state.weeklyGlobalQuote = dom.inputWeeklyGlobalQuote.value || (state.styleMode === 'classic' ? '⚡ Focus on priorities & stay dedicated.' : '🌸 Remember to smile every day!');
 
     state.theme = document.querySelector('input[name="color-theme"]:checked').value;
     state.options.showDoodles = dom.chkShowDoodles.checked;
     state.options.showHabits = dom.chkShowHabits.checked;
     state.options.showCorner = dom.chkShowCorner.checked;
 
+    // 更新樣板選擇器可見性
+    updateTemplatePickerDisplay();
+
     // 更新畫布 class 與 body 列印 class
-    dom.pagesCanvas.className = `pages-canvas ${state.theme} orientation-${state.orientation}`;
-    document.body.classList.remove('print-portrait', 'print-landscape');
-    document.body.classList.add(`print-${state.orientation}`);
+    dom.pagesCanvas.className = `pages-canvas style-${state.styleMode} ${state.theme} orientation-${state.orientation}`;
+    document.body.classList.remove('print-portrait', 'print-landscape', 'style-cute', 'style-classic');
+    document.body.classList.add(`print-${state.orientation}`, `style-${state.styleMode}`);
 
     // 清空畫布與快速導航
     dom.pagesCanvas.innerHTML = '';
@@ -365,7 +415,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.includes.cover) {
       const coverEl = createCoverPage(pageNumber);
       dom.pagesCanvas.appendChild(coverEl);
-      pageIndexList.push({ title: '🌸 封面', pageNum: pageNumber });
+      const icon = state.styleMode === 'classic' ? '🏛️' : '🌸';
+      pageIndexList.push({ title: `${icon} 封面`, pageNum: pageNumber });
       pageNumber++;
     }
 
@@ -373,7 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.includes.timetable) {
       const ttEl = createTimetablePage(pageNumber);
       dom.pagesCanvas.appendChild(ttEl);
-      pageIndexList.push({ title: '🏫 課表', pageNum: pageNumber });
+      const icon = state.styleMode === 'classic' ? '🏛️' : '🏫';
+      pageIndexList.push({ title: `${icon} 課表`, pageNum: pageNumber });
       pageNumber++;
     }
 
@@ -480,27 +532,36 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  function createPageFooter(pageNum, customNote = 'Semester Journal ‧ Happy Planning 🌸') {
+  function createPageFooter(pageNum, customNote = '') {
+    const isClassic = state.styleMode === 'classic';
+    const defaultNote = isClassic ? 'Academic & Classic Journal ‧ Excellence in Planning' : 'Semester Journal ‧ Happy Planning 🌸';
+    const finalNote = customNote || defaultNote;
     return `
       <div class="page-footer-bar">
-        <span>${customNote}</span>
+        <span>${finalNote}</span>
         <span>Page ${pageNum}</span>
       </div>
     `;
   }
 
-  // ================= 1. 生成可愛封面頁 =================
+  // ================= 1. 生成封面頁 (可愛風 / 正式經典風) =================
   function createCoverPage(pageNum) {
+    const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
     page.className = `notebook-page page-cover ${state.options.showCorner ? 'with-corner-border' : ''} ${state.cover.font}`;
     
-    const tpl = coverTemplates[state.cover.template] || coverTemplates.cream;
+    const fallbackTpl = isClassic ? coverTemplates.academic : coverTemplates.cream;
+    const tpl = coverTemplates[state.cover.template] || fallbackTpl;
 
     // 自訂背景或預設背景漸層
     let bgStyle = '';
     if (state.cover.customBg) {
       bgStyle = `background-image: url('${state.cover.customBg}'); opacity: ${state.cover.opacity / 100}; filter: blur(${state.cover.blur}px);`;
     }
+
+    const defaultFooterNote = isClassic
+      ? 'Academic & Professional Edition ‧ Dedicated to Learning & Growth'
+      : 'Made with ❤️ for Study & Joy';
 
     page.innerHTML = `
       ${createCornerDecor()}
@@ -532,13 +593,14 @@ document.addEventListener('DOMContentLoaded', () => {
           ${tpl.decor}
         </div>
       </div>
-      ${createPageFooter(pageNum, 'Made with ❤️ for Study & Joy')}
+      ${createPageFooter(pageNum, defaultFooterNote)}
     `;
     return page;
   }
 
   // ================= 2. 生成學期課表頁 =================
   function createTimetablePage(pageNum) {
+    const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
     page.className = `notebook-page page-timetable ${state.options.showCorner ? 'with-corner-border' : ''}`;
 
@@ -599,14 +661,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    const effectiveGoal = state.customTimetableGoal || '✨ 本學期目標：踏實學習，快樂成長！';
+    const defaultGoal = isClassic ? '🎯 Academic Goals: Focus, Diligence & Excellence' : '✨ 本學期目標：踏實學習，快樂成長！';
+    const effectiveGoal = state.customTimetableGoal || defaultGoal;
     const gridRowsStyle = `grid-template-rows: 36px repeat(${defaultPeriods.length}, 1fr);`;
+
+    const ribbonIcon = isClassic ? '🏛️' : '🎒';
+    const ribbonTitle = isClassic ? '學期課程時間表 ACADEMIC TIMETABLE' : '學期課程時間表 Class Timetable';
 
     page.innerHTML = `
       ${createCornerDecor()}
       <div class="page-header-ribbon">
         <div class="ribbon-title">
-          <span>🎒</span> 學期課程時間表 Class Timetable
+          <span>${ribbonIcon}</span> ${ribbonTitle}
         </div>
         <div 
           class="top-goal-pill" 
@@ -653,6 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ================= 3. 生成月計畫頁 (支援週一顯示週次) =================
   function createMonthlyPage(m, pageNum, allWeeks = []) {
+    const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
     page.className = `notebook-page page-monthly ${state.options.showCorner ? 'with-corner-border' : ''}`;
 
@@ -723,6 +790,10 @@ document.addEventListener('DOMContentLoaded', () => {
       daysGridHtml += `<div class="cal-day-cell empty-day"></div>`;
     }
 
+    const sideTitle1 = isClassic ? '📌 重要日程與死線 (Key Dates)' : '📌 本月重要事項 (Events)';
+    const sideTitle2 = isClassic ? '📋 專案與待辦 (Objectives & Notes)' : '🌸 備忘與目標 (Notes)';
+    const focusPlaceholder = isClassic ? '🎯 Monthly Focus: ____________________________' : '🎯 Focus: ____________________';
+
     page.innerHTML = `
       ${createCornerDecor()}
       <div class="monthly-header">
@@ -731,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="monthly-year">${monthNamesEn[m.month]} ${m.year}</span>
         </div>
         <div class="monthly-top-goals">
-          <div class="top-goal-pill">🎯 Focus: ____________________</div>
+          <div class="top-goal-pill">${focusPlaceholder}</div>
         </div>
       </div>
 
@@ -747,7 +818,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="monthly-sidebar">
           <div class="m-side-card">
-            <div class="m-side-title">📌 本月重要事項 (Events)</div>
+            <div class="m-side-title">${sideTitle1}</div>
             <div class="m-checklist">
               <div class="m-check-item"><span class="m-box"></span> </div>
               <div class="m-check-item"><span class="m-box"></span> </div>
@@ -758,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="m-side-card">
-            <div class="m-side-title">🌸 備忘與目標 (Notes)</div>
+            <div class="m-side-title">${sideTitle2}</div>
             <div class="m-checklist">
               <div class="m-check-item"><span class="m-box"></span> </div>
               <div class="m-check-item"><span class="m-box"></span> </div>
@@ -775,6 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ================= 4. 生成週計畫頁 (支援可編輯週次) =================
   function createWeeklyPage(w, pageNum, weekTitle, isConfiguredWeek) {
+    const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
     page.className = `notebook-page page-weekly ${state.options.showCorner ? 'with-corner-border' : ''}`;
 
@@ -786,6 +858,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const dayNum = day.getDate();
       const dIndex = day.getDay();
 
+      const showDoodlesBar = state.options.showDoodles;
+
       daysHtml += `
         <div class="day-card">
           <div class="day-card-header">
@@ -793,9 +867,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="day-number-pill">${dayNum}</span>
               <span class="day-name-text">${zhDays[dIndex]} <small style="color:var(--page-text-light);font-size:0.75rem;">${enDays[dIndex]}</small></span>
             </div>
-            ${state.options.showDoodles ? `
+            ${showDoodlesBar ? `
               <div class="day-doodles-bar">
-                <span>☀️</span><span>⛅</span><span>🌧️</span><span>😊</span>
+                <span>☀️</span><span>⛅</span><span>🌧️</span><span>${isClassic ? '⚡' : '😊'}</span>
               </div>
             ` : ''}
           </div>
@@ -811,32 +885,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 第 8 格：每週筆記、Habit Tracker、待辦
+    const extraTitle1 = isClassic ? '⚡ 本週重點 (Weekly Priorities)' : '🌟 本週焦點 (Weekly Focus)';
+    const extraTitle2 = isClassic ? '📊 習慣追蹤 Habit Tracker' : '🌱 習慣打卡 Habit Tracker';
+    const habitItem1 = isClassic ? '深度專注 1hr' : '閱讀 20m';
+    const habitItem2 = isClassic ? '運動與健康' : '運動喝水';
+    const habitItem3 = isClassic ? '復盤與反思' : '提早就寢';
+
     const extraCardHtml = `
       <div class="weekly-extra-card">
         <div>
-          <div class="extra-card-title"><span>🌟</span> 本週焦點 (Weekly Focus)</div>
+          <div class="extra-card-title"><span>${isClassic ? '⚡' : '🌟'}</span> ${extraTitle1}</div>
           <div style="border-bottom: 1.5px dashed var(--page-primary); margin: 6px 0 10px; height: 24px;"></div>
         </div>
 
         ${state.options.showHabits ? `
           <div>
-            <div class="extra-card-title" style="font-size:0.82rem; margin-bottom:4px;"><span>🌱</span> 習慣打卡 Habit Tracker</div>
+            <div class="extra-card-title" style="font-size:0.82rem; margin-bottom:4px;"><span>${isClassic ? '📊' : '🌱'}</span> ${extraTitle2}</div>
             <div class="habit-tracker-row">
-              <span>閱讀 20m</span>
+              <span>${habitItem1}</span>
               <div class="habit-dots"><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span></div>
             </div>
             <div class="habit-tracker-row">
-              <span>運動喝水</span>
+              <span>${habitItem2}</span>
               <div class="habit-dots"><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span></div>
             </div>
             <div class="habit-tracker-row">
-              <span>提早就寢</span>
+              <span>${habitItem3}</span>
               <div class="habit-dots"><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span><span class="h-dot"></span></div>
             </div>
           </div>
         ` : `
           <div style="flex:1; border:1px dashed var(--page-line); border-radius:6px; background:#fff; margin-top:6px; padding:6px; font-size:0.8rem; color:var(--page-text-light);">
-            Memo & Doodles 🌸
+            ${isClassic ? 'Weekly Notes & Action Items ✒️' : 'Memo & Doodles 🌸'}
           </div>
         `}
       </div>
@@ -911,38 +991,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ================= 5. 生成附錄方格頁 =================
   function createGridPage(pageNum, subIndex = 1, totalSubPages = 1) {
+    const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
     page.className = `notebook-page page-grid-notes ${state.options.showCorner ? 'with-corner-border' : ''}`;
     const subLabel = totalSubPages > 1 ? ` (${subIndex}/${totalSubPages})` : '';
+    const titleText = isClassic ? '方格筆記 GRID NOTES' : '方格筆記 Grid Notes';
     page.innerHTML = `
       ${createCornerDecor()}
       <div class="page-header-ribbon">
         <div class="ribbon-title">
-          <span>📐</span> 方格筆記 Grid Notes${subLabel}
+          <span>📐</span> ${titleText}${subLabel}
         </div>
         <div class="top-goal-pill">Topic: _____________________  Date: ____/____/____</div>
       </div>
       <div class="grid-paper-body"></div>
-      ${createPageFooter(pageNum, `Large Grid Paper${subLabel} ‧ Notes & Ideas`)}
+      ${createPageFooter(pageNum, `Grid Paper${subLabel} ‧ Notes & Research`)}
     `;
     return page;
   }
 
   // ================= 6. 生成附錄點陣頁 =================
   function createDotPage(pageNum, subIndex = 1, totalSubPages = 1) {
+    const isClassic = state.styleMode === 'classic';
     const page = document.createElement('div');
     page.className = `notebook-page page-grid-notes ${state.options.showCorner ? 'with-corner-border' : ''}`;
     const subLabel = totalSubPages > 1 ? ` (${subIndex}/${totalSubPages})` : '';
+    const titleText = isClassic ? '點陣筆記 DOT JOURNAL' : '點陣筆記 Dot Grid Journal';
     page.innerHTML = `
       ${createCornerDecor()}
       <div class="page-header-ribbon">
         <div class="ribbon-title">
-          <span>✨</span> 點陣筆記 Dot Grid Journal${subLabel}
+          <span>✨</span> ${titleText}${subLabel}
         </div>
         <div class="top-goal-pill">Topic: _____________________  Date: ____/____/____</div>
       </div>
       <div class="dot-paper-body"></div>
-      ${createPageFooter(pageNum, `Large Dot Grid${subLabel} ‧ Bullet Journal`)}
+      ${createPageFooter(pageNum, `Dot Grid${subLabel} ‧ Bullet & Ideas`)}
     `;
     return page;
   }
@@ -974,7 +1058,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 2. 快速學期設定按鈕
+  // 2. 風格模式切換 (可愛風 vs 正式經典風)
+  dom.radioStyleModes.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      state.styleMode = e.target.value;
+      if (state.styleMode === 'classic') {
+        // 若切換至經典風格，自動推薦經典範本與宋體
+        const cuteTemplates = ['cream', 'sakura', 'mint', 'lavender', 'warm', 'minimal'];
+        if (cuteTemplates.includes(state.cover.template)) {
+          state.cover.template = 'academic';
+        }
+        if (dom.coverFontStyle.value === 'font-zen' || dom.coverFontStyle.value === 'font-gaegu') {
+          dom.coverFontStyle.value = 'font-serif';
+          state.cover.font = 'font-serif';
+        }
+        if (dom.coverSubtitle.value === '每一天都是充滿希望的小冒險 🌸') {
+          dom.coverSubtitle.value = '博學審問，慎思明辨，篤行不怠 🏛️';
+          state.cover.subtitle = dom.coverSubtitle.value;
+        }
+        if (dom.inputWeeklyGlobalQuote.value === '🌸 Remember to smile every day!') {
+          dom.inputWeeklyGlobalQuote.value = '⚡ Focus on priorities & stay dedicated.';
+          state.weeklyGlobalQuote = dom.inputWeeklyGlobalQuote.value;
+        }
+      } else {
+        // 切換至可愛風格
+        const classicTemplates = ['academic', 'executive', 'vintage', 'navy', 'burgundy', 'monochrome'];
+        if (classicTemplates.includes(state.cover.template)) {
+          state.cover.template = 'cream';
+        }
+        if (dom.coverFontStyle.value === 'font-serif') {
+          dom.coverFontStyle.value = 'font-zen';
+          state.cover.font = 'font-zen';
+        }
+        if (dom.coverSubtitle.value === '博學審問，慎思明辨，篤行不怠 🏛️') {
+          dom.coverSubtitle.value = '每一天都是充滿希望的小冒險 🌸';
+          state.cover.subtitle = dom.coverSubtitle.value;
+        }
+        if (dom.inputWeeklyGlobalQuote.value === '⚡ Focus on priorities & stay dedicated.') {
+          dom.inputWeeklyGlobalQuote.value = '🌸 Remember to smile every day!';
+          state.weeklyGlobalQuote = dom.inputWeeklyGlobalQuote.value;
+        }
+      }
+      renderAll();
+    });
+  });
+
+  // 3. 快速學期設定按鈕
   dom.btnFallSem.addEventListener('click', () => {
     const y = new Date().getFullYear();
     dom.inputStartDate.value = `${y}-09-01`;
@@ -1000,7 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
   });
 
-  // 3. 週次起訖變更
+  // 4. 週次起訖變更
   dom.selectStartWeekIdx.addEventListener('change', () => {
     state.startWeekIndex = parseInt(dom.selectStartWeekIdx.value, 10);
     renderAll();
@@ -1011,7 +1140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
   });
 
-  // 4. 輸入變更即時重新渲染
+  // 5. 輸入變更即時重新渲染
   const autoUpdateInputs = [
     dom.inputStartDate, dom.inputEndDate, dom.selectWeekStart,
     dom.chkCover, dom.chkTimetable, dom.selectTimetablePeriods,
@@ -1030,14 +1159,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // 套用每週小語至全部按鈕
   dom.btnApplyQuoteAll.addEventListener('click', () => {
     state.customWeeklyQuotes = {}; // 清空個別自訂，全部重設為全域小語
-    state.weeklyGlobalQuote = dom.inputWeeklyGlobalQuote.value || '🌸 Remember to smile every day!';
+    state.weeklyGlobalQuote = dom.inputWeeklyGlobalQuote.value || (state.styleMode === 'classic' ? '⚡ Focus on priorities & stay dedicated.' : '🌸 Remember to smile every day!');
     renderAll();
   });
 
   dom.radioOrientations.forEach(r => r.addEventListener('change', renderAll));
   dom.radioThemes.forEach(r => r.addEventListener('change', renderAll));
 
-  // 5. 封面樣板切換
+  // 6. 封面樣板切換
   dom.templateCards.forEach(card => {
     card.addEventListener('click', () => {
       dom.templateCards.forEach(c => c.classList.remove('active'));
@@ -1047,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 6. 自訂背景圖上傳與調節
+  // 7. 自訂背景圖上傳與調節
   dom.coverBgFile.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -1084,7 +1213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAll();
   });
 
-  // 7. 縮放控制
+  // 8. 縮放控制
   dom.btnZoomIn.addEventListener('click', () => {
     if (state.zoom < 1.4) {
       state.zoom += 0.1;
@@ -1104,7 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyZoom();
   });
 
-  // 8. 隨機配色主題
+  // 9. 隨機配色主題
   dom.btnQuickTheme.addEventListener('click', () => {
     const themeValues = ['theme-cream', 'theme-sakura', 'theme-mint', 'theme-lavender', 'theme-ocean'];
     const currentTheme = document.querySelector('input[name="color-theme"]:checked').value;
@@ -1118,12 +1247,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 9. 匯出設定 (Export JSON)
+  // 10. 匯出設定 (Export JSON)
   dom.btnExportConfig.addEventListener('click', () => {
     const exportData = {
-      version: '1.0',
+      version: '1.1',
       exportedAt: new Date().toISOString(),
       state: {
+        styleMode: state.styleMode,
         startDate: state.startDate,
         endDate: state.endDate,
         orientation: state.orientation,
@@ -1161,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     URL.revokeObjectURL(url);
   });
 
-  // 10. 匯入設定 (Import JSON)
+  // 11. 匯入設定 (Import JSON)
   dom.btnImportConfig.addEventListener('click', () => {
     dom.inputImportFile.value = '';
     dom.inputImportFile.click();
@@ -1178,6 +1308,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const s = imported.state || imported;
 
         // 依序還原狀態
+        if (s.styleMode) {
+          state.styleMode = s.styleMode;
+          const radioStyle = document.querySelector(`input[name="style-mode"][value="${s.styleMode}"]`);
+          if (radioStyle) radioStyle.checked = true;
+        }
+
         if (s.startDate) dom.inputStartDate.value = s.startDate;
         if (s.endDate) dom.inputEndDate.value = s.endDate;
         if (s.weekStartDay !== undefined) dom.selectWeekStart.value = s.weekStartDay;
@@ -1208,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', () => {
           dom.coverSubtitle.value = state.cover.subtitle || '';
           dom.coverTerm.value = state.cover.term || '';
           dom.coverName.value = state.cover.name || '';
-          dom.coverFontStyle.value = state.cover.font || 'font-zen';
+          dom.coverFontStyle.value = state.cover.font || (state.styleMode === 'classic' ? 'font-serif' : 'font-zen');
           dom.coverBgOpacity.value = state.cover.opacity !== undefined ? state.cover.opacity : 40;
           dom.opacityValBadge.textContent = `${dom.coverBgOpacity.value}%`;
           dom.coverBgBlur.value = state.cover.blur !== undefined ? state.cover.blur : 0;
@@ -1270,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   dom.btnRefresh.addEventListener('click', renderAll);
 
-  // 11. 列印與匯出 PDF
+  // 12. 列印與匯出 PDF
   dom.btnPrint.addEventListener('click', () => {
     window.print();
   });

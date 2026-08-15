@@ -33,10 +33,11 @@
   --font-base: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
   --font-gaegu: 'Gaegu', cursive, 'Zen Maru Gothic', sans-serif;
   --font-kiwi: 'Kiwi Maru', 'Zen Maru Gothic', serif;
+  --font-serif: 'Noto Serif TC', 'Kiwi Maru', serif;
   --font-noto: 'Noto Sans TC', sans-serif;
 }
 
-/* ================== 主題變數庫 ================== */
+/* ================== 主題變數庫 (可愛風格) ================== */
 .theme-cream {
   --page-bg: #fffcf5;
   --page-accent: #ffeed8;
@@ -107,6 +108,79 @@
   --page-text: #222222;
   --page-text-light: #777777;
   --page-border: #bbbbbb;
+}
+
+/* ================== 主題變數庫 (正式經典風格專屬調色) ================== */
+.style-classic.theme-cream {
+  --page-bg: #fdfbf7;
+  --page-accent: #f5ede1;
+  --page-primary: #945d36;
+  --page-primary-soft: #fbf6ef;
+  --page-line: #dfcdbc;
+  --page-subline: #ede2d5;
+  --page-text: #2d2621;
+  --page-text-light: #75675e;
+  --page-border: #bca490;
+}
+
+.style-classic.theme-sakura {
+  --page-bg: #fdfafb;
+  --page-accent: #f8e9ed;
+  --page-primary: #8a2a40;
+  --page-primary-soft: #faedf0;
+  --page-line: #e3c4cb;
+  --page-subline: #f1dde2;
+  --page-text: #2b1d20;
+  --page-text-light: #735a60;
+  --page-border: #c49ea7;
+}
+
+.style-classic.theme-mint {
+  --page-bg: #f9fbf9;
+  --page-accent: #e8f2ea;
+  --page-primary: #1f6140;
+  --page-primary-soft: #ecf6ee;
+  --page-line: #bed5c5;
+  --page-subline: #dbeae0;
+  --page-text: #1d2b22;
+  --page-text-light: #597363;
+  --page-border: #9abfa5;
+}
+
+.style-classic.theme-lavender {
+  --page-bg: #faf9fd;
+  --page-accent: #ece7f7;
+  --page-primary: #523b7e;
+  --page-primary-soft: #f1edfa;
+  --page-line: #cbbede;
+  --page-subline: #e1d8ee;
+  --page-text: #272033;
+  --page-text-light: #675c7a;
+  --page-border: #a895c2;
+}
+
+.style-classic.theme-ocean {
+  --page-bg: #f8fafc;
+  --page-accent: #e3edf5;
+  --page-primary: #1d4d75;
+  --page-primary-soft: #eaf2f8;
+  --page-line: #bad0e3;
+  --page-subline: #dae7f3;
+  --page-text: #192734;
+  --page-text-light: #54687a;
+  --page-border: #91b3ce;
+}
+
+.style-classic.theme-bw {
+  --page-bg: #ffffff;
+  --page-accent: #eeeeee;
+  --page-primary: #1a1a1a;
+  --page-primary-soft: #f4f4f4;
+  --page-line: #bfbfbf;
+  --page-subline: #dedede;
+  --page-text: #111111;
+  --page-text-light: #555555;
+  --page-border: #888888;
 }
 
 /* ================== 全域重設與基礎樣式 ================== */
@@ -567,6 +641,96 @@ body {
 .t-lavender { background: #f3edfc; color: #644199; }
 .t-warm { background: #fff0e3; color: #be5d12; }
 .t-minimal { background: #f4f4f4; color: #333333; }
+
+/* 正式經典風樣板色彩 */
+.t-academic { background: #f7f3ee; color: #704724; border-top: 3px solid #704724; }
+.t-executive { background: #f4f6f8; color: #1e3a5f; border-top: 3px solid #1e3a5f; }
+.t-vintage { background: #fcf6eb; color: #845a2b; border-top: 3px solid #845a2b; }
+.t-navy { background: #eef3f9; color: #11335b; border-top: 3px solid #11335b; }
+.t-burgundy { background: #fbf0f2; color: #691d2e; border-top: 3px solid #691d2e; }
+.t-monochrome { background: #f2f2f2; color: #1c1c1c; border-top: 3px solid #1c1c1c; }
+
+/* 整體風格切換卡片 (可愛 vs 經典) */
+.style-mode-card-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.style-mode-card {
+  position: relative;
+  cursor: pointer;
+  display: block;
+}
+
+.style-mode-card input {
+  position: absolute;
+  opacity: 0;
+}
+
+.style-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--ui-radius-md);
+  border: 2px solid #ebdcd0;
+  background: #fdfaf7;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.style-mode-card:hover .style-card-inner {
+  border-color: #d6b7a2;
+  background: #fff8f5;
+  transform: translateY(-1px);
+}
+
+.style-mode-card input:checked + .style-card-inner {
+  border-color: #e8637c;
+  background: #fff3f5;
+  box-shadow: 0 4px 14px rgba(232, 99, 124, 0.18);
+}
+
+.style-card-icon {
+  font-size: 1.8rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1.5px solid #ebdcd0;
+  flex-shrink: 0;
+}
+
+.style-mode-card input:checked + .style-card-inner .style-card-icon {
+  border-color: #fca8ba;
+  background: #fff0f3;
+}
+
+.style-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.style-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #49392e;
+}
+
+.style-desc {
+  font-size: 0.74rem;
+  color: var(--ui-text-muted);
+  line-height: 1.35;
+}
+
+.hidden {
+  display: none !important;
+}
 
 /* 圖片上傳區 */
 .file-upload-box {
@@ -1757,7 +1921,333 @@ body {
 .font-zen { font-family: var(--font-base) !important; }
 .font-gaegu { font-family: var(--font-gaegu) !important; }
 .font-kiwi { font-family: var(--font-kiwi) !important; }
+.font-serif { font-family: var(--font-serif) !important; }
 .font-noto { font-family: var(--font-noto) !important; }
+
+/* ========================================================
+   🏛️ 正式經典風格專屬排版與視覺樣式 (Style: Classic Formal)
+   ======================================================== */
+.style-classic .notebook-page {
+  border-radius: 0px;
+  font-family: var(--font-serif);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.style-classic .notebook-page.with-corner-border {
+  border: 1.5px solid var(--page-primary);
+  outline: 1px solid var(--page-border);
+  outline-offset: -5px;
+}
+
+/* 經典典雅幾何邊角 */
+.style-classic .corner-tl {
+  top: 8px; left: 8px;
+  border-top: 2px solid var(--page-primary);
+  border-left: 2px solid var(--page-primary);
+  border-top-left-radius: 0;
+  width: 20px; height: 20px;
+}
+.style-classic .corner-tr {
+  top: 8px; right: 8px;
+  border-top: 2px solid var(--page-primary);
+  border-right: 2px solid var(--page-primary);
+  border-top-right-radius: 0;
+  width: 20px; height: 20px;
+}
+.style-classic .corner-bl {
+  bottom: 8px; left: 8px;
+  border-bottom: 2px solid var(--page-primary);
+  border-left: 2px solid var(--page-primary);
+  border-bottom-left-radius: 0;
+  width: 20px; height: 20px;
+}
+.style-classic .corner-br {
+  bottom: 8px; right: 8px;
+  border-bottom: 2px solid var(--page-primary);
+  border-right: 2px solid var(--page-primary);
+  border-bottom-right-radius: 0;
+  width: 20px; height: 20px;
+}
+
+/* 經典頁尾 */
+.style-classic .page-footer-bar {
+  border-top: 1px solid var(--page-line);
+  font-family: var(--font-serif);
+  letter-spacing: 0.5px;
+  font-size: 0.72rem;
+}
+
+/* --- 1. 經典封面頁 (Classic Cover) --- */
+.style-classic .page-cover .cover-badge-top {
+  border-radius: 2px;
+  border: 1px solid var(--page-primary);
+  background: #ffffff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  padding: 5px 22px;
+  font-weight: 700;
+}
+
+.style-classic .page-cover .cover-illustration {
+  font-size: 3.8rem;
+  margin: 14px 0 8px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1));
+}
+
+.style-classic .page-cover .cover-center-card {
+  border-radius: 0px;
+  border: 2px solid var(--page-primary);
+  background: #ffffff;
+  padding: 44px 36px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.style-classic .page-cover .cover-center-card::before {
+  border: 1px solid var(--page-border);
+  border-radius: 0px;
+  top: 5px; left: 5px; right: 5px; bottom: 5px;
+}
+
+.style-classic .page-cover .cover-main-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+  font-family: var(--font-serif);
+}
+
+.style-classic .page-cover .cover-sub-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--page-subline);
+  padding-bottom: 14px;
+}
+
+.style-classic .page-cover .meta-row {
+  border-bottom: 1px solid var(--page-primary);
+}
+
+.style-classic .page-cover .meta-label {
+  font-size: 0.86rem;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.style-classic .page-cover .meta-value {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.style-classic .cover-bottom-doodles {
+  letter-spacing: 8px;
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+/* --- 2. 經典課表頁 (Classic Timetable) --- */
+.style-classic .page-timetable .page-header-ribbon {
+  border-bottom: 2px solid var(--page-primary);
+  padding-bottom: 6px;
+}
+
+.style-classic .page-timetable .ribbon-title {
+  font-size: 1.35rem;
+  letter-spacing: 1px;
+  font-weight: 900;
+}
+
+.style-classic .page-timetable .timetable-grid {
+  border-radius: 0;
+  border: 1.5px solid var(--page-primary);
+  background: var(--page-primary-soft);
+  gap: 2px;
+  padding: 3px;
+}
+
+.style-classic .page-timetable .tt-header {
+  border-radius: 0;
+  font-size: 0.88rem;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.style-classic .page-timetable .tt-time-col {
+  border-radius: 0;
+  border: 1px solid var(--page-line);
+  background: #ffffff;
+  font-weight: 700;
+}
+
+.style-classic .page-timetable .tt-cell {
+  border-radius: 0;
+  border: 1px solid var(--page-line);
+}
+
+.style-classic .top-goal-pill {
+  border-radius: 0;
+  border: 1px solid var(--page-primary);
+  background: #ffffff;
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+}
+
+/* --- 3. 經典月計畫頁 (Classic Monthly) --- */
+.style-classic .page-monthly .monthly-header {
+  border-bottom: 2px solid var(--page-primary);
+}
+
+.style-classic .page-monthly .monthly-big-month {
+  font-size: 2rem;
+  letter-spacing: 2px;
+}
+
+.style-classic .page-monthly .monthly-year {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.style-classic .monthly-calendar-grid {
+  border-radius: 0;
+  border: 1.5px solid var(--page-primary);
+  background: var(--page-primary-soft);
+  padding: 3px;
+  gap: 2px;
+}
+
+.style-classic .cal-weekday-header {
+  border-radius: 0;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.style-classic .cal-day-cell {
+  border-radius: 0;
+  border: 1px solid var(--page-line);
+}
+
+.style-classic .cal-day-num {
+  border-radius: 2px;
+  background: var(--page-primary-soft);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.style-classic .cal-week-tag {
+  border-radius: 2px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.style-classic .m-side-card {
+  border-radius: 0;
+  border: 1.5px solid var(--page-primary);
+}
+
+.style-classic .m-side-title {
+  border-bottom: 1px solid var(--page-primary);
+  font-size: 0.88rem;
+  letter-spacing: 0.5px;
+}
+
+.style-classic .m-box {
+  border-radius: 0;
+  border: 1px solid var(--page-primary);
+}
+
+/* --- 4. 經典週計畫頁 (Classic Weekly) --- */
+.style-classic .page-weekly .weekly-top-bar {
+  border-bottom: 2px solid var(--page-primary);
+}
+
+.style-classic .weekly-badge {
+  border-radius: 0;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  font-weight: 800;
+  padding: 4px 12px;
+}
+
+.style-classic .weekly-badge.empty-week {
+  border-radius: 0;
+  border: 1px solid var(--page-primary);
+}
+
+.style-classic .weekly-date-range {
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.style-classic .weekly-focus-box {
+  border-radius: 0;
+  border: 1px solid var(--page-primary);
+  background: #ffffff;
+  font-size: 0.82rem;
+}
+
+.style-classic .day-card {
+  border-radius: 0;
+  border: 1px solid var(--page-primary);
+  padding: 8px 10px;
+}
+
+.style-classic .day-card-header {
+  border-bottom: 1px solid var(--page-line);
+  padding-bottom: 4px;
+}
+
+.style-classic .day-number-pill {
+  border-radius: 0;
+  width: 22px; height: 22px;
+  font-size: 0.85rem;
+}
+
+.style-classic .day-name-text {
+  font-size: 0.88rem;
+  letter-spacing: 0.5px;
+}
+
+.style-classic .todo-check-circle {
+  border-radius: 0; /* 經典方格待辦 */
+  width: 10px; height: 10px;
+  border: 1.2px solid var(--page-primary);
+}
+
+.style-classic .weekly-extra-card {
+  border-radius: 0;
+  border: 1.5px solid var(--page-primary);
+  background: var(--page-primary-soft);
+}
+
+.style-classic .extra-card-title {
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.style-classic .h-dot {
+  border-radius: 0;
+  border: 1px solid var(--page-primary);
+  width: 10px; height: 10px;
+}
+
+/* --- 5. 經典方格與點陣筆記 (Classic Grid & Dot) --- */
+.style-classic .page-grid-notes .page-header-ribbon {
+  border-bottom: 2px solid var(--page-primary);
+}
+
+.style-classic .page-grid-notes .ribbon-title {
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+}
+
+.style-classic .grid-paper-body,
+.style-classic .dot-paper-body {
+  border-radius: 0;
+  border: 1.5px solid var(--page-primary);
+}
 
 /* ========================================================
    列印與匯出 PDF 精準專用樣式 (@media print)
