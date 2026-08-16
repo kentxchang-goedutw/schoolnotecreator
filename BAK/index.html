@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>可愛學期手寫筆記本生成工具 🌸 | 輕鬆製作專屬手帳與列印</title>
-  <meta name="description" content="可愛風學期手寫筆記本生成工具，支援自訂起訖日期、週計畫、月計畫、客製化封面與直橫式 A4 列印排版。">
-  <!-- Google Fonts: 圓體與可愛手寫風字型 -->
+  <title>學期手寫筆記本生成工具 📖✨ | 溫馨可愛 🌸 ＆ 正式經典 🏛️ 專屬手帳列印</title>
+  <meta name="description" content="學期手寫筆記本生成工具，支援溫馨可愛與正式經典兩種風格、多種質感配色、自訂起訖日期、週計畫、月計畫、客製化封面與直橫式 A4 列印排版。">
+  <!-- Google Fonts: 圓體、手寫風與典雅宋體/黑體字型 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Kiwi+Maru:wght@400;500&family=Noto+Sans+TC:wght@400;500;700;900&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Kiwi+Maru:wght@400;500&family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@400;600;700;900&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
         <span class="logo-icon">📖✨</span>
         <div class="logo-text">
           <h1>學期手寫筆記本生成工具</h1>
-          <p class="subtitle">Semester Journal & Planner Generator 🌸</p>
+          <p class="subtitle">Semester Journal & Planner Generator (Cute 🌸 / Classic 🏛️)</p>
         </div>
       </div>
       
@@ -32,7 +32,7 @@
         </button>
         <input type="file" id="input-import-file" accept=".json" style="display: none;">
         
-        <button id="btn-quick-theme" class="btn btn-secondary" title="隨機切換可愛配色主題">
+        <button id="btn-quick-theme" class="btn btn-secondary" title="隨機切換配色主題">
           🎨 隨機配色
         </button>
         <button id="btn-print" class="btn btn-primary btn-sparkle">
@@ -49,8 +49,9 @@
       <!-- 標籤切換 -->
       <nav class="panel-tabs">
         <button class="tab-btn active" data-tab="tab-calendar">📅 日期結構</button>
+        <button class="tab-btn" data-tab="tab-timetable">🏫 課表設定</button>
         <button class="tab-btn" data-tab="tab-cover">🎨 封面設計</button>
-        <button class="tab-btn" data-tab="tab-style">🌸 風格色彩</button>
+        <button class="tab-btn" data-tab="tab-style">✨ 風格色彩</button>
       </nav>
 
       <div class="panel-body">
@@ -141,10 +142,10 @@
           </div>
 
           <div class="form-group">
-            <label for="select-week-start">每週第一天</label>
+            <label for="select-week-start">月筆記與週曆每週第一天</label>
             <select id="select-week-start" class="form-control">
-              <option value="1" selected>週一開始 (Mon - Sun)</option>
-              <option value="0">週日開始 (Sun - Sat)</option>
+              <option value="0" selected>週日開始 (Sun - Sat) [預設]</option>
+              <option value="1">週一開始 (Mon - Sun)</option>
             </select>
           </div>
 
@@ -184,6 +185,16 @@
               <span class="checkmark"></span>
               <span class="label-text">📝 週計畫頁 (一週一頁，日程與打卡)</span>
             </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="chk-include-weekly-timetable" checked>
+              <span class="checkmark"></span>
+              <span class="label-text">📋 每週課表記事頁 (上/左課表 + 下/右 7 日記事)</span>
+            </label>
+            <label class="custom-checkbox">
+              <input type="checkbox" id="chk-include-weekly-timetable-v2">
+              <span class="checkmark"></span>
+              <span class="label-text">📋 週課表筆記頁 V2 (全版課表＋跨日重要事項＋節次筆記)</span>
+            </label>
             
             <!-- 附錄方格頁 (含自訂頁數) -->
             <div class="appendix-item-row">
@@ -213,48 +224,129 @@
           </div>
         </section>
 
+        <!-- 標籤頁: 課表設定與手動輸入編輯器 -->
+        <section id="tab-timetable" class="tab-content">
+          <div class="section-title">
+            <span class="section-badge">🏫</span>
+            <h3>課表基本設定與目標</h3>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="select-tab-timetable-periods">每日課堂節數</label>
+              <select id="select-tab-timetable-periods" class="form-control">
+                <option value="7" selected>7 節課 (上午4節+午休+下午3節)</option>
+                <option value="8">8 節課 (上午4節+午休+下午4節)</option>
+                <option value="9">9 節課 (上午4節+午休+下午5節)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="input-timetable-goal-field">本學期課表目標標語</label>
+              <input type="text" id="input-timetable-goal-field" class="form-control" value="✨ 本學期目標：踏實學習，快樂成長！" placeholder="例如：✨ 本學期目標：踏實學習，快樂成長！">
+            </div>
+          </div>
+          <p class="form-help-text">
+            💡 在此輸入或在預覽畫面的任一週課表點擊輸入，內容皆會自動雙向同步！
+          </p>
+
+          <div class="quick-semester-btns">
+            <span class="quick-label">快速帶入課表：</span>
+            <button type="button" class="btn-chip" id="btn-sample-tt-1">帶入中學課表範例</button>
+            <button type="button" class="btn-chip" id="btn-sample-tt-2">帶入大學課表範例</button>
+            <button type="button" class="btn-chip" id="btn-clear-tt">清空課表</button>
+          </div>
+
+          <div class="section-title mt-4">
+            <span class="section-badge">✏️</span>
+            <h3>手動輸入每節課表科目</h3>
+          </div>
+
+          <div class="timetable-editor-wrap" id="timetable-editor-container">
+            <!-- JS 動態生成週一至週五各節次輸入表格 -->
+          </div>
+        </section>
+
         <!-- 標籤頁 2: 封面自訂設計器 -->
         <section id="tab-cover" class="tab-content">
           <div class="section-title">
             <span class="section-badge">🎨</span>
-            <h3>預設可愛版型</h3>
+            <h3 id="cover-template-title">預設封面版型</h3>
           </div>
           
           <div class="cover-template-grid" id="cover-template-picker">
-            <div class="template-card active" data-template="cream">
+            <!-- 可愛風版型 -->
+            <div class="template-card cute-tpl active" data-template="cream">
               <div class="template-preview t-cream">
                 <span class="t-emoji">🧸</span>
                 <span class="t-name">奶油小熊</span>
               </div>
             </div>
-            <div class="template-card" data-template="sakura">
+            <div class="template-card cute-tpl" data-template="sakura">
               <div class="template-preview t-sakura">
                 <span class="t-emoji">🌸</span>
                 <span class="t-name">櫻花粉夢</span>
               </div>
             </div>
-            <div class="template-card" data-template="mint">
+            <div class="template-card cute-tpl" data-template="mint">
               <div class="template-preview t-mint">
                 <span class="t-emoji">🍃</span>
                 <span class="t-name">清新薄荷</span>
               </div>
             </div>
-            <div class="template-card" data-template="lavender">
+            <div class="template-card cute-tpl" data-template="lavender">
               <div class="template-preview t-lavender">
                 <span class="t-emoji">🔮</span>
                 <span class="t-name">星空紫羅蘭</span>
               </div>
             </div>
-            <div class="template-card" data-template="warm">
+            <div class="template-card cute-tpl" data-template="warm">
               <div class="template-preview t-warm">
                 <span class="t-emoji">🍊</span>
                 <span class="t-name">溫暖日落</span>
               </div>
             </div>
-            <div class="template-card" data-template="minimal">
+            <div class="template-card cute-tpl" data-template="minimal">
               <div class="template-preview t-minimal">
                 <span class="t-emoji">✒️</span>
                 <span class="t-name">極簡手繪</span>
+              </div>
+            </div>
+
+            <!-- 正式經典風版型 (切換風格時動態展示/切換) -->
+            <div class="template-card classic-tpl hidden" data-template="academic">
+              <div class="template-preview t-academic">
+                <span class="t-emoji">🏛️</span>
+                <span class="t-name">經典學院</span>
+              </div>
+            </div>
+            <div class="template-card classic-tpl hidden" data-template="executive">
+              <div class="template-preview t-executive">
+                <span class="t-emoji">📑</span>
+                <span class="t-name">商務極簡</span>
+              </div>
+            </div>
+            <div class="template-card classic-tpl hidden" data-template="vintage">
+              <div class="template-preview t-vintage">
+                <span class="t-emoji">📜</span>
+                <span class="t-name">古典典雅</span>
+              </div>
+            </div>
+            <div class="template-card classic-tpl hidden" data-template="navy">
+              <div class="template-preview t-navy">
+                <span class="t-emoji">⚓</span>
+                <span class="t-name">藏青權威</span>
+              </div>
+            </div>
+            <div class="template-card classic-tpl hidden" data-template="burgundy">
+              <div class="template-preview t-burgundy">
+                <span class="t-emoji">🍷</span>
+                <span class="t-name">勃艮第紅</span>
+              </div>
+            </div>
+            <div class="template-card classic-tpl hidden" data-template="monochrome">
+              <div class="template-preview t-monochrome">
+                <span class="t-emoji">📐</span>
+                <span class="t-name">幾何經典</span>
               </div>
             </div>
           </div>
@@ -324,16 +416,46 @@
             <label for="cover-font-style">字體風格</label>
             <select id="cover-font-style" class="form-control">
               <option value="font-zen" selected>可愛圓體 (Zen Maru Gothic)</option>
-              <option value="font-gaegu">手寫風童趣 (Gaegu)</option>
+              <option value="font-serif">典雅宋體 (Noto Serif TC - 經典推薦)</option>
+              <option value="font-noto">清晰黑體 (Noto Sans TC - 現代正式)</option>
               <option value="font-kiwi">手帳日系 (Kiwi Maru)</option>
-              <option value="font-noto">清晰黑體 (Noto Sans)</option>
+              <option value="font-gaegu">手寫風童趣 (Gaegu)</option>
             </select>
           </div>
         </section>
 
         <!-- 標籤頁 3: 風格色彩 -->
         <section id="tab-style" class="tab-content">
+          <!-- 新增：筆記本整體風格切換 -->
           <div class="section-title">
+            <span class="section-badge">✨</span>
+            <h3>筆記本整體風格</h3>
+          </div>
+
+          <div class="style-mode-card-group">
+            <label class="style-mode-card">
+              <input type="radio" name="style-mode" value="cute" checked>
+              <div class="style-card-inner">
+                <div class="style-card-icon">🌸</div>
+                <div class="style-card-info">
+                  <span class="style-title">溫馨可愛風格</span>
+                  <span class="style-desc">圓角手繪、童趣小圖示、粉彩柔和排版</span>
+                </div>
+              </div>
+            </label>
+            <label class="style-mode-card">
+              <input type="radio" name="style-mode" value="classic">
+              <div class="style-card-inner">
+                <div class="style-card-icon">🏛️</div>
+                <div class="style-card-info">
+                  <span class="style-title">正式經典風格</span>
+                  <span class="style-desc">俐落直角、典雅雙線、洗練專業、學術商務</span>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="section-title mt-4">
             <span class="section-badge">🎨</span>
             <h3>內頁色系主題</h3>
           </div>
@@ -342,45 +464,45 @@
             <label class="palette-option">
               <input type="radio" name="color-theme" value="theme-cream" checked>
               <span class="palette-bar bar-cream"></span>
-              <span class="palette-name">奶油焦糖 (溫柔米黃)</span>
+              <span class="palette-name">奶油焦糖 / 古典暖棕 (溫潤雅緻)</span>
             </label>
             <label class="palette-option">
               <input type="radio" name="color-theme" value="theme-sakura">
               <span class="palette-bar bar-sakura"></span>
-              <span class="palette-name">櫻花草莓 (粉嫩療癒)</span>
+              <span class="palette-name">櫻花草莓 / 勃艮第紅 (雅紅質感)</span>
             </label>
             <label class="palette-option">
               <input type="radio" name="color-theme" value="theme-mint">
               <span class="palette-bar bar-mint"></span>
-              <span class="palette-name">薄荷森系 (清新淡綠)</span>
+              <span class="palette-name">薄荷森系 / 典雅墨綠 (自然沉穩)</span>
             </label>
             <label class="palette-option">
               <input type="radio" name="color-theme" value="theme-lavender">
               <span class="palette-bar bar-lavender"></span>
-              <span class="palette-name">紫藤星夜 (優雅淡紫)</span>
+              <span class="palette-name">紫藤星夜 / 皇家紫羅蘭 (高雅深邃)</span>
             </label>
             <label class="palette-option">
               <input type="radio" name="color-theme" value="theme-ocean">
               <span class="palette-bar bar-ocean"></span>
-              <span class="palette-name">雲朵天藍 (清爽天藍)</span>
+              <span class="palette-name">雲朵天藍 / 經典藏青 (專業俐落)</span>
             </label>
             <label class="palette-option">
               <input type="radio" name="color-theme" value="theme-bw">
               <span class="palette-bar bar-bw"></span>
-              <span class="palette-name">簡約手繪 (省墨黑白)</span>
+              <span class="palette-name">簡約手繪 / 石墨黑白 (省墨極簡)</span>
             </label>
           </div>
 
           <div class="section-title mt-4">
-            <span class="section-badge">✨</span>
-            <h3>細節手繪裝飾</h3>
+            <span class="section-badge">⚙️</span>
+            <h3>細節裝飾與模組設定</h3>
           </div>
 
           <div class="checkbox-group">
             <label class="custom-checkbox">
               <input type="checkbox" id="chk-show-doodles" checked>
               <span class="checkmark"></span>
-              <span class="label-text">顯示手繪可愛小圖示 (天氣、心情、星星)</span>
+              <span class="label-text">顯示頁面小圖示與天氣心情欄</span>
             </label>
             <label class="custom-checkbox">
               <input type="checkbox" id="chk-show-habits" checked>
@@ -390,7 +512,7 @@
             <label class="custom-checkbox">
               <input type="checkbox" id="chk-show-corner" checked>
               <span class="checkmark"></span>
-              <span class="label-text">頁面邊角手繪裝飾花紋</span>
+              <span class="label-text">頁面邊角裝飾外框 (可愛圓角 / 經典雙線)</span>
             </label>
           </div>
         </section>

@@ -346,22 +346,28 @@ body {
   display: flex;
   background: #fdf8f4;
   border-bottom: 2px solid #ede1d6;
-  padding: 6px 12px 0;
-  gap: 6px;
+  padding: 6px 8px 0;
+  gap: 4px;
 }
 
 .tab-btn {
   flex: 1;
-  padding: 10px 4px;
+  padding: 9px 2px;
   border: none;
   background: transparent;
-  font-size: 0.95rem;
+  font-size: 0.84rem;
   font-weight: 700;
   color: var(--ui-text-muted);
   cursor: pointer;
-  border-radius: 10px 10px 0 0;
+  border-radius: 8px 8px 0 0;
   transition: all 0.2s;
   font-family: inherit;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
 
 .tab-btn:hover {
@@ -2619,6 +2625,242 @@ body {
 }
 
 /* ========================================================
+   週課表筆記頁 V2 (Weekly Timetable & Notes Planner V2)
+   ======================================================== */
+.page-weekly-timetable-v2 {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.wtt2-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 84px repeat(5, 1fr);
+  gap: 4px;
+  background: var(--page-accent);
+  padding: 5px;
+  border-radius: 10px;
+  border: 1.8px solid var(--page-border);
+  min-height: 0;
+}
+
+.wtt2-header {
+  background: var(--page-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.78rem;
+  border-radius: 5px;
+  padding: 2px 2px;
+  text-align: center;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+.wtt2-time-col {
+  background: var(--page-primary-soft);
+  color: var(--page-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.74rem;
+  border-radius: 5px;
+  border: 1px dashed var(--page-line);
+  padding: 2px 2px;
+  text-align: center;
+  line-height: 1.15;
+  outline: none;
+  cursor: text;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.wtt2-time-col:hover, .wtt2-time-col:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(240, 138, 157, 0.3);
+}
+
+.wtt2-focus-header {
+  background: var(--page-primary-soft);
+  color: var(--page-primary);
+  font-weight: 800;
+  font-size: 0.72rem;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.wtt2-focus-cell {
+  grid-column: span 5;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1.5px dashed var(--page-primary);
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--page-text);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  outline: none;
+  position: relative;
+  cursor: text;
+  min-height: 0;
+  transition: all 0.2s;
+}
+
+.wtt2-focus-cell:hover, .wtt2-focus-cell:focus {
+  border-color: var(--page-primary);
+  box-shadow: 0 0 0 2px rgba(240, 138, 157, 0.25);
+  background: #fffefa;
+}
+
+.wtt2-focus-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 2px;
+}
+
+.wtt2-focus-line {
+  height: 1px;
+  border-bottom: 1px dashed var(--page-subline);
+  width: 100%;
+  opacity: 0.75;
+}
+
+.wtt2-break-cell {
+  grid-column: span 5;
+  background: #ffffff;
+  border-radius: 5px;
+  border: 1px dashed var(--page-line);
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  color: var(--page-text);
+  display: flex;
+  align-items: center;
+  outline: none;
+  cursor: text;
+  min-height: 0;
+  transition: all 0.2s;
+}
+
+.wtt2-break-cell:hover, .wtt2-break-cell:focus {
+  background: #fffefa;
+  border-color: var(--page-primary);
+}
+
+.wtt2-cell {
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1.2px solid var(--page-line);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.wtt2-cell:hover {
+  border-color: var(--page-primary);
+}
+
+.wtt2-cell-top {
+  background: var(--page-accent);
+  color: var(--page-primary);
+  font-weight: 900;
+  font-size: 0.86rem;
+  text-align: center;
+  padding: 2px 4px;
+  border-bottom: 1px dashed var(--page-line);
+  outline: none;
+  word-break: break-all;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: text;
+  line-height: 1.2;
+}
+
+.wtt2-cell-top:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 1.5px var(--page-primary);
+}
+
+.wtt2-cell-bottom {
+  flex: 1;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 3px;
+  outline: none;
+  font-size: 0.78rem;
+  color: var(--page-text);
+  cursor: text;
+  min-height: 0;
+}
+
+.wtt2-note-line {
+  height: 1px;
+  border-bottom: 1px dashed var(--page-subline);
+  width: 100%;
+  opacity: 0.65;
+}
+
+/* 正式經典風格下的覆蓋 (Classic Style for V2) */
+.style-classic .wtt2-grid {
+  border-radius: 0;
+  border: 1.5px solid var(--page-primary);
+  background: var(--page-primary-soft);
+}
+
+.style-classic .wtt2-header {
+  border-radius: 0;
+  letter-spacing: 0.3px;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  font-family: var(--font-classic-serif);
+}
+
+.style-classic .wtt2-time-col {
+  border-radius: 0;
+  border: 1px solid var(--page-line);
+  font-family: var(--font-classic-serif);
+}
+
+.style-classic .wtt2-focus-cell {
+  border-radius: 0;
+  border: 1.2px solid var(--page-primary);
+}
+
+.style-classic .wtt2-break-cell {
+  border-radius: 0;
+  border: 1px solid var(--page-line);
+  font-family: var(--font-classic-serif);
+}
+
+.style-classic .wtt2-cell {
+  border-radius: 0;
+  border: 1px solid var(--page-line);
+}
+
+.style-classic .wtt2-cell-top {
+  border-radius: 0;
+  border-bottom: 1px solid var(--page-line);
+  font-family: var(--font-classic-serif);
+  font-weight: 800;
+}
+
+/* ========================================================
    列印與匯出 PDF 精準專用樣式 (@media print)
    ======================================================== */
 @media print {
@@ -2741,6 +2983,10 @@ body {
   }
 
   .wtt-container {
+    height: calc(100% - 60px) !important;
+  }
+
+  .wtt2-grid {
     height: calc(100% - 60px) !important;
   }
 

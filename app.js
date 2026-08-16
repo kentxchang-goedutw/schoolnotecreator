@@ -20,12 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     customTimetableLabels: {}, // 課表節次時間自訂文字 { periodIndex: "文字" }
     customTimetableCells: {}, // 課表格子自訂文字 { "row_col": "文字" }
     customTimetableGoal: '', // 課表目標小語
+    customWeeklyFocus: {}, // 每週跨日重要事項自訂文字快取 { weekKey: "文字" }
     includes: {
       cover: true,
       timetable: true,
       monthly: true,
       weekly: true,
       weeklyTimetable: true,
+      weeklyTimetableV2: false, // 週課表筆記頁 V2 (預設不勾選)
       grid: true,
       dot: false
     },
@@ -110,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chkMonthly: document.getElementById('chk-include-monthly'),
     chkWeekly: document.getElementById('chk-include-weekly'),
     chkWeeklyTimetable: document.getElementById('chk-include-weekly-timetable'),
+    chkWeeklyTimetableV2: document.getElementById('chk-include-weekly-timetable-v2'),
     chkGrid: document.getElementById('chk-include-grid'),
     chkDot: document.getElementById('chk-include-dot'),
     inputGridPages: document.getElementById('input-grid-pages'),
@@ -418,8 +421,8 @@ document.addEventListener('DOMContentLoaded', () => {
       input.addEventListener('input', (e) => {
         const key = e.target.dataset.cellKey;
         state.customTimetableCells[key] = e.target.value;
-        // 同步畫布上所有對應格子 (包含學期課表頁與所有每週課表記事頁)
-        document.querySelectorAll(`.mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
+        // 同步畫布上所有對應格子 (包含學期課表頁、每週課表 V1 與週課表筆記 V2)
+        document.querySelectorAll(`.wtt2-cell-top[data-cell-key="${key}"], .mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
           c.innerText = e.target.value;
         });
       });
@@ -477,6 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.includes.monthly = dom.chkMonthly.checked;
     state.includes.weekly = dom.chkWeekly.checked;
     state.includes.weeklyTimetable = dom.chkWeeklyTimetable ? dom.chkWeeklyTimetable.checked : true;
+    state.includes.weeklyTimetableV2 = dom.chkWeeklyTimetableV2 ? dom.chkWeeklyTimetableV2.checked : false;
     state.includes.grid = dom.chkGrid.checked;
     state.includes.dot = dom.chkDot.checked;
 
@@ -582,6 +586,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const mLabel = `${w.startDate.getMonth() + 1}/${w.startDate.getDate()}`;
         const navTitle = effectiveTitle ? `📋 ${effectiveTitle} 課表記事 (${mLabel})` : `📋 課表記事 (${mLabel})`;
+        pageIndexList.push({ title: navTitle, pageNum: pageNumber });
+        pageNumber++;
+      });
+    }
+
+    // 3.6 週課表筆記頁 V2 (全版課表＋跨日重要事項＋節次筆記)
+    if (state.includes.weeklyTimetableV2) {
+      allWeeks.forEach((w) => {
+        let calculatedTitle = '';
+        let isConfiguredWeek = false;
+
+        if (w.rawIndex >= state.startWeekIndex && w.rawIndex <= state.endWeekIndex) {
+          const teachingWeekNum = w.rawIndex - state.startWeekIndex + 1;
+          calculatedTitle = `第 ${teachingWeekNum} 週`;
+          isConfiguredWeek = true;
+        }
+
+        const effectiveTitle = (state.customWeekTitles[w.weekKey] !== undefined)
+          ? state.customWeekTitles[w.weekKey]
+          : calculatedTitle;
+
+        const wtt2El = createWeeklyTimetableV2Page(w, pageNumber, effectiveTitle, isConfiguredWeek);
+        dom.pagesCanvas.appendChild(wtt2El);
+
+        const mLabel = `${w.startDate.getMonth() + 1}/${w.startDate.getDate()}`;
+        const navTitle = effectiveTitle ? `📋 ${effectiveTitle} 課表筆記 V2 (${mLabel})` : `📋 課表筆記 V2 (${mLabel})`;
         pageIndexList.push({ title: navTitle, pageNum: pageNumber });
         pageNumber++;
       });
@@ -841,8 +871,8 @@ document.addEventListener('DOMContentLoaded', () => {
           sidebarInput.value = text;
         }
 
-        // 即時同步至所有每週課表記事頁的同個格子
-        document.querySelectorAll(`.mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
+        // 即時同步至所有每週課表頁面 (包含 V1 與 V2) 的同個格子
+        document.querySelectorAll(`.wtt2-cell-top[data-cell-key="${key}"], .mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
           if (c !== e.target && c.innerText !== text) {
             c.innerText = text;
           }
@@ -1165,8 +1195,212 @@ document.addEventListener('DOMContentLoaded', () => {
           sidebarInput.value = text;
         }
 
-        // 即時同步至所有其他頁面上的同個格子 (包含學期課表頁與所有每週課表記事頁)
-        document.querySelectorAll(`.mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
+        // 即時同步至所有其他頁面上的同個格子 (包含學期課表頁、每週課表 V1 與週課表筆記 V2)
+        document.querySelectorAll(`.wtt2-cell-top[data-cell-key="${key}"], .mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
+          if (c !== e.target && c.innerText !== text) {
+            c.innerText = text;
+          }
+        });
+      });
+    });
+
+    return page;
+  }
+
+  // ================= 4.5 生成週課表筆記頁 V2 (全版課表＋跨五日重要事項＋節次筆記) =================
+  function createWeeklyTimetableV2Page(w, pageNum, weekTitle, isConfiguredWeek) {
+    const isClassic = state.styleMode === 'classic';
+    const page = document.createElement('div');
+    page.className = `notebook-page page-weekly-timetable-v2 ${state.options.showCorner ? 'with-corner-border' : ''}`;
+
+    // 表頭
+    const ttDays = ['星期一 MON', '星期二 TUE', '星期三 WED', '星期四 THU', '星期五 FRI'];
+    let headerCols = `<div class="wtt2-header">${isClassic ? '節次 / 時間' : '節次 / 時間'}</div>`;
+    ttDays.forEach(d => {
+      headerCols += `<div class="wtt2-header">${d}</div>`;
+    });
+
+    const periodList = getTimetablePeriodConfigs(state.timetablePeriods);
+
+    // 第一節課前：跨五日空欄（重要事項 / 焦點）
+    const focusLabel = isClassic ? '📌 重要事項<br><small>Priorities</small>' : '⭐ 重要事項<br><small>Weekly Memo</small>';
+    const weeklyFocusVal = state.customWeeklyFocus[w.weekKey] || '';
+    
+    let focusRowHtml = `
+      <div class="wtt2-time-col wtt2-focus-header">${focusLabel}</div>
+      <div 
+        class="wtt2-focus-cell" 
+        contenteditable="true" 
+        spellcheck="false" 
+        data-focus-key="${w.weekKey}" 
+        title="點擊可輸入當週重要事項，亦可留空手寫"
+      >${escapeHtml(weeklyFocusVal)}<div class="wtt2-focus-lines"><span class="wtt2-focus-line"></span><span class="wtt2-focus-line"></span><span class="wtt2-focus-line"></span></div></div>
+    `;
+
+    // 課表各節次
+    let cellsHtml = '';
+    periodList.forEach(p => {
+      const defLabel = `${p.label}<br><small>${p.shortTime || p.time}</small>`;
+      const effectiveLabel = state.customTimetableLabels[p.pIdx] !== undefined
+        ? state.customTimetableLabels[p.pIdx]
+        : defLabel;
+
+      if (p.isBreak) {
+        cellsHtml += `
+          <div class="wtt2-time-col tt-break-col" contenteditable="true" spellcheck="false" data-p-idx="${p.pIdx}">${effectiveLabel}</div>
+          <div 
+            class="wtt2-break-cell" 
+            style="grid-column: span 5;" 
+            contenteditable="true" 
+            spellcheck="false" 
+            title="午休備忘（可點擊輸入文字或手寫留空）"
+          ></div>
+        `;
+      } else {
+        cellsHtml += `
+          <div 
+            class="wtt2-time-col" 
+            contenteditable="true" 
+            spellcheck="false" 
+            data-p-idx="${p.pIdx}" 
+            title="點擊可直接修改節次與時間文字"
+          >${effectiveLabel}</div>
+        `;
+
+        for (let c = 0; c < 5; c++) {
+          const cellKey = `${p.pIdx}_${c}`;
+          const cellContent = state.customTimetableCells[cellKey] || '';
+          cellsHtml += `
+            <div class="wtt2-cell">
+              <div 
+                class="wtt2-cell-top" 
+                contenteditable="true" 
+                spellcheck="false" 
+                data-cell-key="${cellKey}" 
+                title="點擊可修改科目"
+              >${escapeHtml(cellContent)}</div>
+              <div 
+                class="wtt2-cell-bottom" 
+                contenteditable="true" 
+                spellcheck="false" 
+                title="點擊可為此節輸入筆記事項，亦可留空手寫"
+              >
+                <div class="wtt2-note-line"></div>
+                <div class="wtt2-note-line"></div>
+              </div>
+            </div>
+          `;
+        }
+      }
+    });
+
+    // 計算 grid 列數：表頭 (28px) + 重要事項 (64px) + 午休縮小 (24px) / 課程 (1fr)
+    const rowTracks = ['28px', '64px'];
+    periodList.forEach(p => {
+      if (p.isBreak) {
+        rowTracks.push('24px');
+      } else {
+        rowTracks.push('1fr');
+      }
+    });
+    const gridRowsStyle = `grid-template-rows: ${rowTracks.join(' ')};`;
+
+    const startStr = `${w.startDate.getFullYear()}.${w.startDate.getMonth() + 1}.${w.startDate.getDate()}`;
+    const endStr = `${w.endDate.getMonth() + 1}.${w.endDate.getDate()}`;
+    const badgeClass = weekTitle ? 'weekly-badge' : 'weekly-badge empty-week';
+
+    const effectiveQuote = (state.customWeeklyQuotes[w.weekKey] !== undefined)
+      ? state.customWeeklyQuotes[w.weekKey]
+      : state.weeklyGlobalQuote;
+
+    page.innerHTML = `
+      ${createCornerDecor()}
+      <div class="weekly-top-bar">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span 
+            class="${badgeClass}" 
+            contenteditable="true" 
+            spellcheck="false" 
+            data-week-key="${w.weekKey}" 
+            title="點擊可直接手動修改此處文字"
+          >${escapeHtml(weekTitle)}</span>
+          <span class="weekly-date-range">${startStr} - ${endStr}</span>
+        </div>
+        <div 
+          class="weekly-focus-box" 
+          contenteditable="true" 
+          spellcheck="false" 
+          data-week-key="${w.weekKey}" 
+          title="點擊可直接修改此週右上角小語"
+        >
+          ${escapeHtml(effectiveQuote)}
+        </div>
+      </div>
+
+      <div class="wtt2-grid" style="${gridRowsStyle}">
+        ${headerCols}
+        ${focusRowHtml}
+        ${cellsHtml}
+      </div>
+
+      ${createPageFooter(pageNum, weekTitle ? `${weekTitle} 週課表筆記 Planner V2` : 'Weekly Class Timetable & Notes V2')}
+    `;
+
+    // 綁定週次手動修改事件
+    const editableBadge = page.querySelector('.weekly-badge');
+    if (editableBadge) {
+      editableBadge.addEventListener('input', (e) => {
+        const text = e.target.innerText.trim();
+        state.customWeekTitles[w.weekKey] = text;
+        if (text) {
+          editableBadge.classList.remove('empty-week');
+        } else {
+          editableBadge.classList.add('empty-week');
+        }
+      });
+    }
+
+    // 綁定右上角小語修改
+    const editableQuote = page.querySelector('.weekly-focus-box');
+    if (editableQuote) {
+      editableQuote.addEventListener('input', (e) => {
+        const text = e.target.innerText.trim();
+        state.customWeeklyQuotes[w.weekKey] = text;
+      });
+    }
+
+    // 綁定跨五日重要事項輸入
+    const focusCell = page.querySelector('.wtt2-focus-cell');
+    if (focusCell) {
+      focusCell.addEventListener('input', (e) => {
+        const text = e.target.innerText;
+        state.customWeeklyFocus[w.weekKey] = text;
+      });
+    }
+
+    // 綁定節次文字修改
+    page.querySelectorAll('.wtt2-time-col[data-p-idx]').forEach(col => {
+      col.addEventListener('input', (e) => {
+        const idx = e.target.dataset.pIdx;
+        state.customTimetableLabels[idx] = e.target.innerHTML;
+      });
+    });
+
+    // 綁定課表科目修改並即時同步至所有頁面與側邊欄
+    page.querySelectorAll('.wtt2-cell-top').forEach(cell => {
+      cell.addEventListener('input', (e) => {
+        const key = e.target.dataset.cellKey;
+        const text = e.target.innerText;
+        state.customTimetableCells[key] = text;
+        
+        // 即時同步至側邊欄輸入框
+        const sidebarInput = document.querySelector(`.tt-editor-input[data-cell-key="${key}"]`);
+        if (sidebarInput && sidebarInput.value !== text) {
+          sidebarInput.value = text;
+        }
+
+        // 即時同步至學期課表頁、每週課表 V1、以及其他週課表 V2
+        document.querySelectorAll(`.wtt2-cell-top[data-cell-key="${key}"], .mini-tt-cell[data-cell-key="${key}"], .tt-cell[data-cell-key="${key}"]`).forEach(c => {
           if (c !== e.target && c.innerText !== text) {
             c.innerText = text;
           }
@@ -1477,7 +1711,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const autoUpdateInputs = [
     dom.inputStartDate, dom.inputEndDate, dom.selectWeekStart,
     dom.chkCover, dom.chkTimetable, dom.selectTimetablePeriods,
-    dom.chkMonthly, dom.chkWeekly, dom.chkWeeklyTimetable,
+    dom.chkMonthly, dom.chkWeekly, dom.chkWeeklyTimetable, dom.chkWeeklyTimetableV2,
     dom.chkGrid, dom.chkDot, dom.inputGridPages, dom.inputDotPages,
     dom.inputWeeklyGlobalQuote,
     dom.coverTitle, dom.coverSubtitle, dom.coverTerm, dom.coverName, dom.coverFontStyle,
@@ -1680,6 +1914,7 @@ document.addEventListener('DOMContentLoaded', () => {
         weeklyGlobalQuote: state.weeklyGlobalQuote,
         customWeekTitles: state.customWeekTitles,
         customWeeklyQuotes: state.customWeeklyQuotes,
+        customWeeklyFocus: state.customWeeklyFocus,
         customTimetableLabels: state.customTimetableLabels,
         customTimetableCells: state.customTimetableCells,
         customTimetableGoal: state.customTimetableGoal
@@ -1741,6 +1976,9 @@ document.addEventListener('DOMContentLoaded', () => {
           if (dom.chkWeeklyTimetable) {
             dom.chkWeeklyTimetable.checked = s.includes.weeklyTimetable !== false;
           }
+          if (dom.chkWeeklyTimetableV2) {
+            dom.chkWeeklyTimetableV2.checked = !!s.includes.weeklyTimetableV2;
+          }
           dom.chkGrid.checked = !!s.includes.grid;
           dom.chkDot.checked = !!s.includes.dot;
         }
@@ -1801,6 +2039,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 快取文字還原
         state.customWeekTitles = s.customWeekTitles || {};
         state.customWeeklyQuotes = s.customWeeklyQuotes || {};
+        state.customWeeklyFocus = s.customWeeklyFocus || {};
         state.customTimetableLabels = s.customTimetableLabels || {};
         state.customTimetableCells = s.customTimetableCells || {};
         state.customTimetableGoal = s.customTimetableGoal || '';
